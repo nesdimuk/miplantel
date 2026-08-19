@@ -1,0 +1,122 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f7fa;
+  color: #1a1a1a;
+  font-size: 15px;
+}
+
+.topnav {
+  background: #0d47a1;
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.topnav .brand { font-weight: 800; margin-right: 8px; }
+.topnav a { color: #cfe3ff; text-decoration: none; font-size: 0.95rem; }
+.topnav a:hover, .topnav a.active { color: #fff; font-weight: 600; }
+.topnav .right { margin-left: auto; }
+
+main { max-width: 1080px; margin: 0 auto; padding: 24px 20px 60px; }
+
+h1 { font-size: 1.5rem; margin-bottom: 4px; }
+h2 { font-size: 1.15rem; margin: 22px 0 10px; }
+.muted { color: #607080; font-size: 0.9rem; }
+
+.card {
+  background: #fff;
+  border: 1px solid #e0e6ec;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 14px 0;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eef1f5; }
+th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #607080; }
+tr:last-child td { border-bottom: none; }
+td.num { text-align: right; }
+
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+.pill.ok { background: #e8f5e9; color: #2e7d32; }
+.pill.warn { background: #fff3e0; color: #ef6c00; }
+.pill.bad { background: #ffebee; color: #c62828; }
+.pill.off { background: #eceff1; color: #607080; }
+.pill.info { background: #e3f2fd; color: #1565c0; }
+
+/* Leyenda del dashboard */
+.leyenda { margin-top: 14px; border-top: 1px solid #eceff1; padding-top: 10px; }
+.leyenda summary { cursor: pointer; color: #607080; font-size: 0.9rem; font-weight: 600; }
+.leyenda-body { padding: 12px 4px 4px; }
+.leyenda-body p { font-size: 0.88rem; color: #46586a; line-height: 1.55; margin: 8px 0; }
+.leyenda-tabla { margin: 10px 0; }
+.leyenda-tabla th, .leyenda-tabla td { font-size: 0.85rem; padding: 5px 10px; text-align: left; }
+
+form.inline { display: inline; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 0.78rem; color: #607080; }
+
+input, select, textarea {
+  padding: 8px 10px;
+  border: 1px solid #cfd8dc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: #1565c0; }
+input[type="checkbox"] { width: 16px; height: 16px; }
+
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #1565c0;
+  color: #fff;
+  text-decoration: none;
+}
+.btn.small { padding: 4px 10px; font-size: 0.8rem; }
+.btn.gray { background: #eceff1; color: #37474f; }
+.btn.warn { background: #ef6c00; }
+.btn:hover { filter: brightness(1.08); }
+
+.login-box {
+  max-width: 360px;
+  margin: 80px auto;
+  background: #fff;
+  border: 1px solid #e0e6ec;
+  border-radius: 14px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.error { color: #c62828; font-size: 0.9rem; }
+.login-sub { color: #607080; font-size: 0.88rem; text-align: center; }
+.login-sub a { color: #1565c0; }
+
+.checkgroup { display: flex; gap: 12px; flex-wrap: wrap; }
+.checkgroup label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; }
+
+/* Dashboard */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat-card { background: #fff; border: 1px solid #e0e6ec; border-radius: 12px; padding: 14px 16px; }
+.stat-card .value { font-size: 1.7rem; font-weight: 800; }
+.stat-card .label { font-size: 0.8rem; color: #607080; }
+
+.bar-row { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+.bar-label { width: 40px; font-size: 0.85rem; text-align: right; color: #607080; }
+.bar-track { flex: 1; background: #eef1f5; border-radius: 6px; height: 20px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; background: #1565c0; min-width: 2px; }
+.bar-value { width: 36px; font-size: 0.85rem; color: #607080; }
+
+.insight { padding: 10px 14px; border-left: 4px solid #1565c0; background: #fff; border-radius: 0 10px 10px 0; margin: 8px 0; }

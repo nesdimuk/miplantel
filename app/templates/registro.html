@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registra tu club · Mi Plantel</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <form class="login-box" method="post" action="/registro">
+    <h1>⚽ Registra tu club</h1>
+    <p class="login-sub">Gratis, en 1 minuto. Sin tarjeta.</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <input type="text" name="nombre" placeholder="Nombre del club (ej: Deportes La Serena)"
+           value="{{ valores.get('nombre', '') }}" autofocus required maxlength="120">
+    <input type="email" name="email" placeholder="Email de contacto"
+           value="{{ valores.get('email', '') }}" required maxlength="120">
+    <input type="password" name="password" placeholder="Contraseña (mín. 8 caracteres)" required minlength="8">
+    <select name="timezone">
+      {% for tz, pais in timezones %}
+        <option value="{{ tz }}" {% if valores.get('timezone', 'America/Santiago') == tz %}selected{% endif %}>{{ pais }} — {{ tz }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit">Crear mi club</button>
+    <p class="login-sub">Al crear tu club aceptas los <a href="/terminos">Términos de Servicio</a>
+       y la <a href="/privacidad">Política de Privacidad</a>.</p>
+    <p class="login-sub">¿Ya tienes cuenta? <a href="/admin/login">Ingresar</a></p>
+  </form>
+</body>
+</html>

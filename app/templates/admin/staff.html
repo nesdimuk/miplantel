@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Staff{% endblock %}
+{% block content %}
+<h1>Staff — {{ club.nombre }}</h1>
+
+<div class="card">
+  <h2 style="margin-top:0">Agregar miembro</h2>
+  <form class="row" method="post" action="/admin/{{ club.slug }}/staff">
+    <div class="field"><label>Nombre</label><input name="nombre" required></div>
+    <div class="field"><label>WhatsApp (56912345678)</label><input name="telefono" pattern="[0-9]{8,15}" required></div>
+    <div class="field"><label>Rol</label>
+      <select name="rol">
+        <option value="DT">DT</option>
+        <option value="PF">PF</option>
+        <option value="ADMIN">ADMIN</option>
+      </select>
+    </div>
+    <div class="checkgroup">
+      <label><input type="checkbox" name="recibe_alertas" value="true" checked> Alertas</label>
+      <label><input type="checkbox" name="recibe_resumen" value="true" checked> Resumen</label>
+    </div>
+    <button class="btn" type="submit">Agregar</button>
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Nombre</th><th>WhatsApp</th><th>Rol</th><th>Recibe</th><th>Estado</th><th></th></tr>
+    {% for s in staff %}
+    <tr>
+      <td>{{ s.nombre }}</td>
+      <td>{{ s.telefono_whatsapp }}</td>
+      <td><span class="pill info">{{ s.rol }}</span></td>
+      <td>
+        {% if s.recibe_alertas %}<span class="pill warn">Alertas</span>{% endif %}
+        {% if s.recibe_resumen %}<span class="pill info">Resumen</span>{% endif %}
+      </td>
+      <td><span class="pill {{ 'ok' if s.activo else 'off' }}">{{ 'Activo' if s.activo else 'Inactivo' }}</span></td>
+      <td>
+        <form class="inline" method="post" action="/admin/{{ club.slug }}/staff/{{ s.id }}/toggle">
+          <button class="btn small {{ 'warn' if s.activo else '' }}" type="submit">
+            {{ 'Desactivar' if s.activo else 'Activar' }}
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

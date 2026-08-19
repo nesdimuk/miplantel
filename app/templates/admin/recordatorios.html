@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Recordatorios{% endblock %}
+{% block content %}
+<h1>Recordatorios — {{ club.nombre }}</h1>
+<p class="muted">Mensajes automáticos al staff. Hora fija, o minutos antes del inicio del entrenamiento. Solo se envían en días de entrenamiento.</p>
+
+<div class="card">
+  <h2 style="margin-top:0">Nuevo recordatorio</h2>
+  <form class="row" method="post" action="/admin/{{ club.slug }}/recordatorios">
+    <div class="field"><label>Categoría</label>
+      <select name="categoria_id">
+        {% for c in categorias %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field"><label>Nombre</label><input name="nombre" required placeholder="Pre-entreno"></div>
+    <div class="field"><label>Hora fija (opcional)</label><input name="hora" type="time"></div>
+    <div class="field"><label>… o minutos antes del entreno</label><input name="minutos_antes" type="number" min="0" max="720" style="width:90px"></div>
+    <div class="field"><label>Solo si check-ins &lt; N (opcional)</label><input name="condicion_min_checkins" type="number" min="1" style="width:90px"></div>
+    <div class="field" style="flex:1"><label>Mensaje</label><input name="mensaje" required maxlength="500" placeholder="Comparte el QR con el equipo"></div>
+    <button class="btn" type="submit">Crear</button>
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Categoría</th><th>Nombre</th><th>Cuándo</th><th>Condición</th><th>Último envío</th><th>Estado</th><th></th></tr>
+    {% for r, categoria_nombre in recordatorios %}
+    <tr>
+      <td>{{ categoria_nombre }}</td>
+      <td>{{ r.nombre }}<br><span class="muted">{{ r.mensaje }}</span></td>
+      <td>{% if r.hora %}{{ r.hora }}{% else %}{{ r.minutos_antes }} min antes{% endif %}</td>
+      <td>{% if r.condicion_min_checkins %}check-ins &lt; {{ r.condicion_min_checkins }}{% else %}Siempre{% endif %}</td>
+      <td>{{ r.last_enviado.strftime("%d/%m") if r.last_enviado else '—' }}</td>
+      <td><span class="pill {{ 'ok' if r.activo else 'off' }}">{{ 'Activo' if r.activo else 'Inactivo' }}</span></td>
+      <td>
+        <form class="inline" method="post" action="/admin/{{ club.slug }}/recordatorios/{{ r.id }}/toggle">
+          <button class="btn small {{ 'warn' if r.activo else '' }}" type="submit">
+            {{ 'Desactivar' if r.activo else 'Activar' }}
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Primeros pasos{% endblock %}
+{% block content %}
+<h1>¡Bienvenido, {{ club.nombre }}! 👋</h1>
+<p class="muted">Tu club ya está creado. Sigue estos 4 pasos y en 10 minutos estás recibiendo datos del plantel.</p>
+
+<div class="card">
+  <h2 style="margin-top:0">1️⃣ Crea tu primera categoría</h2>
+  <p class="muted">Define nombre (ej: Sub-15), días y horario de entrenamiento. La duración de la sesión se calcula sola.</p>
+  <p style="margin-top:10px"><a class="btn" href="/admin/{{ club.slug }}/categorias">Crear categoría</a></p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">2️⃣ Carga tu plantel</h2>
+  <p class="muted">Pega la lista completa de nombres — un jugador por línea — y quedan todos creados de una vez.</p>
+  <p style="margin-top:10px"><a class="btn" href="/admin/{{ club.slug }}/jugadores">Agregar jugadores</a></p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">3️⃣ Agrega tu cuerpo técnico</h2>
+  <p class="muted">DT, preparador físico, coordinador: ellos recibirán las alertas y resúmenes por WhatsApp.</p>
+  <p style="margin-top:10px"><a class="btn" href="/admin/{{ club.slug }}/staff">Agregar staff</a></p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">4️⃣ Imprime el QR y pégalo en el camarín</h2>
+  <p class="muted">Cada categoría tiene su QR. Los jugadores lo escanean y responden en 30 segundos, sin instalar nada.</p>
+  <p class="muted" style="margin-top:6px">Estará disponible apenas crees una categoría, en <code>/qr/{{ club.slug }}/&lt;categoría&gt;</code>.</p>
+</div>
+{% endblock %}

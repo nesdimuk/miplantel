@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ club.nombre }} · {{ categoria.nombre }} · Dashboard</title>
+  <link rel="stylesheet" href="/static/admin.css">
+  <style>
+    /* Barras línea de tiempo (vista secundaria) */
+    .bar-label-wide { width: 90px; font-size: 0.8rem; color: #607080; flex-shrink: 0; }
+    .bar-fill.rpe-bar-low  { background: #43a047; }
+    .bar-fill.rpe-bar-mid  { background: #ef6c00; }
+    .bar-fill.rpe-bar-high { background: #c62828; }
+    /* Microciclo chart controls */
+    .mc-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .mc-var-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+    .mc-var-btn {
+      padding: 4px 13px; border: 1px solid #cfd8dc; border-radius: 20px;
+      background: #fff; cursor: pointer; font-size: 0.83rem; color: #607080;
+      transition: background 0.12s, color 0.12s;
+    }
+    .mc-var-btn.active { background: #1565c0; color: #fff; border-color: #1565c0; font-weight: 600; }
+    .mc-player-sel {
+      padding: 4px 10px; border: 1px solid #cfd8dc; border-radius: 8px;
+      font-size: 0.83rem; color: #1a1a1a; background: #fff; cursor: pointer;
+    }
+    /* Canvas wrapper */
+    .mc-chart-wrap { position: relative; width: 100%; }
+    #mc-canvas { display: block; width: 100%; cursor: crosshair; }
+    /* Tooltip */
+    .mc-tooltip {
+      position: absolute; background: #fff; border: 1px solid #e0e6ec;
+      border-radius: 10px; padding: 9px 13px; font-size: 0.82rem;
+      pointer-events: none; box-shadow: 0 3px 14px rgba(0,0,0,0.1);
+      z-index: 20; min-width: 130px; max-width: 200px;
+    }
+    .mc-tt-day { font-weight: 700; color: #1565c0; margin-bottom: 5px; font-size: 0.85rem; }
+    .mc-tt-row { display: flex; align-items: center; gap: 7px; margin: 3px 0; color: #37474f; }
+    .mc-tt-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    /* Legend */
+    .mc-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+    .mc-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #46586a; }
+    .mc-legend-line { width: 22px; height: 3px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <span class="brand">📊 {{ club.nombre }}</span>
+    {% for c in categorias %}
+      <a href="/d/{{ club.slug }}?categoria_id={{ c.id }}" class="{{ 'active' if c.id == categoria.id }}">{{ c.nombre }}</a>
+    {% endfor %}
+    <span class="right muted" style="color:#cfe3ff">{{ d.desde.strftime("%d/%m") }} – {{ d.hasta.strftime("%d/%m/%Y") }}</span>
+  </nav>
+  <main>
+
+    <h1>{{ categoria.nombre }}</h1>
+    <p class="muted">Últimos 28 días · {{ d.dias_activos }} días con registros</p>
+
+    <div class="cards-grid">
+      <div class="stat-card"><div class="value">{{ d.total_checkins }}</div><div class="label">Check-ins</div></div>
+      <div class="stat-card"><div class="value">{{ d.total_checkouts }}</div><div class="label">Check-outs</div></div>
+      <div class="stat-card"><div class="value">{{ d.hooper.sueno if d.hooper.sueno is not none else '—' }}</div><div class="label">😴 Sueño (7d)</div></div>
+      <div class="stat-card"><div class="value">{{ d.hooper.energia if d.hooper.energia is not none else '—' }}</div><div class="label">⚡ Energía (7d)</div></div>
+      <div class="stat-card"><div class="value">{{ d.hooper.animo if d.hooper.animo is not none else '—' }}</div><div class="label">🙂 Ánimo (7d)</div></div>
+      <div class="stat-card"><div class="value">{{ d.hooper.dolor if d.hooper.dolor is not none else '—' }}</div><div class="label">🩹 Dolor (7d)</div></div>
+    </div>
+
+    <h2>💡 Insights</h2>
+    {% for i in d.insights %}<div class="insight">{{ i }}</div>{% endfor %}
+
+    <h2>📊 Variables por microciclo</h2>
+    <div class="card">
+      <!-- Controles -->
+      <div class="mc-controls">
+        <div class="mc-var-tabs" role="tablist">
+          <button class="mc-var-btn active" data-var="rpe"     onclick="setVar(this)">RPE</button>
+          <button class="mc-var-btn"        data-var="carga"   onclick="setVar(this)">Carga</button>
+          <button class="mc-var-btn"        data-var="sueno"   onclick="setVar(this)">Sueño</button>
+          <button class="mc-var-btn"        data-var="energia" onclick="setVar(this)">Energía</button>
+          <button class="mc-var-btn"        data-var="animo"   onclick="setVar(this)">Ánimo</button>
+          <button class="mc-var-btn"        data-var="dolor"   onclick="setVar(this)">Dolor</button>
+        </div>
+        <select class="mc-player-sel" onchange="setPlayer(this.value)">
+          <option value="club">Club completo</option>
+          {% for j in d.mc_jugadores %}
+          <option value="{{ j.id }}">{{ j.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Canvas chart -->
+      <div class="mc-chart-wrap" id="mc-chart-wrap">
+        <canvas id="mc-canvas" height="260"></canvas>
+        <div id="mc-tooltip" class="mc-tooltip" style="display:none">
+          <div class="mc-tt-day"></div>
+          <div class="mc-tt-rows"></div>
+        </div>
+      </div>
+
+      <!-- Leyenda semanas -->
+      <div class="mc-legend" id="mc-legend"></div>
+      <p class="muted" style="font-size:0.78rem;margin-top:6px">
+        Hooper (Sueño/Energía/Ánimo/Dolor) viene del check-in · Carga y RPE del check-out
+      </p>
+    </div>
+
+    <h2>📶 Distribución RPE</h2>
+    <div class="card">
+      {% for rpe, n in d.rpe_dist.items() %}
+      <div class="bar-row">
+        <span class="bar-label">{{ rpe }}</span>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ (n / d.max_rpe * 100) | round }}%"></div></div>
+        <span class="bar-value">{{ n }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h2>👥 Jugadores</h2>
+    <div class="card">
+      <table>
+        <tr>
+          <th>Jugador</th><th class="num">Registros</th><th class="num">Adhesión</th>
+          <th class="num">Proceso completo</th><th class="num">Carga 7d</th>
+          <th class="num">RPE 7d</th><th class="num">RPE 28d</th>
+          <th class="num">ACWR</th><th>Señales</th>
+        </tr>
+        {% for f in d.filas %}
+        <tr>
+          <td>{{ f.jugador.apellido }}, {{ f.jugador.nombre }}</td>
+          <td class="num">{{ f.registros }}</td>
+          <td class="num">
+            <span class="pill {{ 'ok' if f.adhesion >= 75 else ('warn' if f.adhesion >= 50 else 'bad') }}">{{ f.adhesion }}%</span>
+          </td>
+          <td class="num">{{ f.proceso }}%</td>
+          <td class="num">{{ f.carga_aguda }}</td>
+          <td class="num">
+            {% if f.rpe_7d is none %}<span class="muted">—</span>
+            {% else %}<span class="pill {{ 'bad' if f.rpe_7d >= 7 else ('warn' if f.rpe_7d >= 4 else 'ok') }}">{{ f.rpe_7d }}</span>{% endif %}
+          </td>
+          <td class="num">
+            {% if f.rpe_28d is none %}<span class="muted">—</span>
+            {% else %}<span class="pill {{ 'bad' if f.rpe_28d >= 7 else ('warn' if f.rpe_28d >= 4 else 'ok') }}">{{ f.rpe_28d }}</span>{% endif %}
+          </td>
+          <td class="num">
+            {% if f.acwr is none %}<span class="pill off">—</span>
+            {% elif f.acwr > 1.5 %}<span class="pill bad">{{ f.acwr }}</span>
+            {% elif f.acwr > 1.3 or f.acwr < 0.8 %}<span class="pill warn">{{ f.acwr }}</span>
+            {% else %}<span class="pill ok">{{ f.acwr }}</span>{% endif %}
+          </td>
+          <td>
+            {% if f.riesgo %}
+              {% for r in f.riesgo %}<span class="pill bad">{{ r }}</span> {% endfor %}
+            {% endif %}
+            {% if f.sin_carga %}<span class="pill off">sin datos de carga</span>
+            {% elif not f.riesgo %}<span class="pill ok">OK</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      <details class="leyenda">
+        <summary>ℹ️ ¿Cómo leer esta tabla?</summary>
+        <div class="leyenda-body">
+          <p><strong>Carga 7d</strong> — trabajo acumulado de la semana: por cada sesión,
+          esfuerzo percibido (RPE 0-10) × minutos. Ej: RPE 6 × 120 min = 720 puntos.</p>
+          <p><strong>ACWR</strong> — compara la carga de esta semana con el promedio de las
+          últimas 4 semanas. Responde: <em>¿entrenó parecido a lo que su cuerpo venía tolerando?</em></p>
+          <table class="leyenda-tabla">
+            <tr><th>ACWR</th><th>Lectura</th></tr>
+            <tr><td><span class="pill ok">0.8 – 1.3</span></td><td>Zona segura: carga similar a la habitual.</td></tr>
+            <tr><td><span class="pill bad">&gt; 1.5</span></td><td>Pico brusco: mucho más de lo acostumbrado → mayor riesgo de lesión.</td></tr>
+            <tr><td><span class="pill warn">&lt; 0.8</span></td><td>Venía entrenando menos: reintegrar en forma progresiva.</td></tr>
+            <tr><td><span class="pill off">—</span></td><td>Historial insuficiente para calcular (se necesitan ~2 semanas de check-outs).</td></tr>
+          </table>
+          <p><strong>Señales</strong> — <em>sueño/ánimo bajo</em>: promedio ≤2 en sus últimos 3 registros ·
+          <em>carga alta</em>: superó el umbral semanal de la categoría ·
+          <em>molestias</em>: 2 o más reportes en 28 días ·
+          <em>sin datos de carga</em>: no ha hecho check-outs, no se puede evaluar.</p>
+          <p class="muted">Las señales indican a quién mirar primero — no reemplazan la
+          evaluación del cuerpo técnico.</p>
+        </div>
+      </details>
+    </div>
+
+  </main>
+  <script>
+  (function() {
+    // ---- Datos inyectados desde Jinja2 ----
+    const MC_CLUB    = {{ d.mc_club    | tojson }};
+    const MC_PLAYERS = {{ d.mc_jugadores | tojson }};
+    const MC_SEMANAS = {{ d.mc_semanas | tojson }};
+
+    // ---- Paleta (categorica, validada contra blanco/gris claro) ----
+    const COLORS = ['#1565c0','#2e7d32','#c62828','#6a1b9a','#00838f','#e65100'];
+
+    const DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+    const VAR_CFG = {
+      rpe:    { label:'RPE',     yMin:0, yMax:10,   fmt: v => v.toFixed(1) },
+      carga:  { label:'Carga',   yMin:0, yMax:null,  fmt: v => Math.round(v)+' pts' },
+      sueno:  { label:'Sueño',   yMin:1, yMax:5,    fmt: v => v.toFixed(1) },
+      energia:{ label:'Energía', yMin:1, yMax:5,    fmt: v => v.toFixed(1) },
+      animo:  { label:'Ánimo',   yMin:1, yMax:5,    fmt: v => v.toFixed(1) },
+      dolor:  { label:'Dolor',   yMin:1, yMax:5,    fmt: v => v.toFixed(1) },
+    };
+
+    let currentVar    = 'rpe';
+    let currentPlayer = 'club';
+    let hoveredDay    = null;
+
+    // Devuelve la matriz activa [[7 vals por sem], ...]
+    function getMatrix() {
+      if (currentPlayer === 'club') return MC_CLUB[currentVar];
+      const p = MC_PLAYERS.find(j => j.id == currentPlayer);
+      return p ? p.vars[currentVar] : null;
+    }
+
+    // ---- Dibujo canvas ----
+    function draw() {
+      const canvas = document.getElementById('mc-canvas');
+      if (!canvas) return;
+
+      // Tamaño real del canvas = tamaño CSS × devicePixelRatio
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width  = rect.width  * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const W = rect.width;
+      const H = rect.height;
+      const PAD = { top:24, right:20, bottom:40, left:50 };
+      const iW = W - PAD.left - PAD.right;
+      const iH = H - PAD.top  - PAD.bottom;
+
+      const matrix = getMatrix();
+      const cfg = VAR_CFG[currentVar];
+
+      // Calcular yMax dinámico si es nulo (Carga)
+      let yMax = cfg.yMax;
+      if (!yMax) {
+        const all = (matrix || []).flatMap(s => s.filter(v => v !== null));
+        yMax = all.length ? Math.ceil(Math.max(...all) * 1.15 / 100) * 100 || 100 : 100;
+      }
+      const yMin   = cfg.yMin;
+      const yRange = yMax - yMin;
+
+      const xOf = d => PAD.left + (d / 6) * iW;
+      const yOf = v => PAD.top  + iH - ((v - yMin) / yRange) * iH;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Columna resaltada al hover
+      if (hoveredDay !== null) {
+        const colW = iW / 7;
+        ctx.fillStyle = 'rgba(21,101,192,0.06)';
+        ctx.beginPath();
+        ctx.roundRect(xOf(hoveredDay) - colW/2, PAD.top - 4, colW, iH + 8, 6);
+        ctx.fill();
+      }
+
+      // Grid horizontal
+      const steps = 4;
+      for (let i = 0; i <= steps; i++) {
+        const v = yMin + yRange * i / steps;
+        const y = yOf(v);
+        ctx.strokeStyle = '#eef1f5';
+        ctx.lineWidth   = 1;
+        ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+        ctx.fillStyle   = '#9aacb8';
+        ctx.font        = '11px -apple-system,sans-serif';
+        ctx.textAlign   = 'right';
+        const label = yRange > 200 ? Math.round(v) : (yRange > 20 ? Math.round(v) : v.toFixed(1));
+        ctx.fillText(label, PAD.left - 6, y + 4);
+      }
+
+      // Etiquetas X
+      DIAS.forEach((d, i) => {
+        ctx.fillStyle  = hoveredDay === i ? '#1565c0' : '#9aacb8';
+        ctx.font       = hoveredDay === i
+          ? 'bold 12px -apple-system,sans-serif'
+          : '11px -apple-system,sans-serif';
+        ctx.textAlign  = 'center';
+        ctx.fillText(d, xOf(i), PAD.top + iH + 18);
+      });
+
+      // Líneas y puntos por semana
+      if (!matrix) return;
+      matrix.forEach((sem, si) => {
+        if (!sem || sem.every(v => v === null)) return;
+        const color = COLORS[si % COLORS.length];
+
+        // Línea
+        ctx.strokeStyle = color;
+        ctx.lineWidth   = 2.5;
+        ctx.lineJoin    = 'round';
+        ctx.setLineDash([]);
+        let px = null, py = null;
+        sem.forEach((val, d) => {
+          if (val === null) { px = py = null; return; }
+          const x = xOf(d), y = yOf(val);
+          if (px !== null) {
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+          }
+          px = x; py = y;
+        });
+
+        // Puntos
+        sem.forEach((val, d) => {
+          if (val === null) return;
+          const x = xOf(d), y = yOf(val);
+          const r = hoveredDay === d ? 6 : 4;
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle   = color; ctx.fill();
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+          // Valor directo sobre el punto en el día hover
+          if (hoveredDay === d) {
+            ctx.fillStyle  = color;
+            ctx.font       = 'bold 11px -apple-system,sans-serif';
+            ctx.textAlign  = 'center';
+            ctx.fillText(cfg.fmt(val), x, y - 10);
+          }
+        });
+      });
+    }
+
+    // ---- Tooltip HTML ----
+    function showTooltip(day, canvasRect) {
+      const tt   = document.getElementById('mc-tooltip');
+      const matrix = getMatrix();
+      const cfg  = VAR_CFG[currentVar];
+      if (!matrix || !tt) return;
+
+      tt.querySelector('.mc-tt-day').textContent = DIAS[day];
+      const rows = matrix.map((sem, si) => {
+        const val = sem ? sem[day] : null;
+        const color = COLORS[si % COLORS.length];
+        return `<div class="mc-tt-row">
+          <span class="mc-tt-dot" style="background:${color}"></span>
+          <span style="color:#8fa0ad;font-weight:600">${MC_SEMANAS[si] || 'S'+(si+1)}</span>
+          <span>${val !== null ? cfg.fmt(val) : '<em style="color:#b0bec5">sin datos</em>'}</span>
+        </div>`;
+      }).join('');
+      tt.querySelector('.mc-tt-rows').innerHTML = rows;
+
+      // Posicionar tooltip
+      const W = canvasRect.width;
+      const xFrac = day / 6;
+      const PAD_L = 50, PAD_R = 20;
+      const xPx = PAD_L + xFrac * (W - PAD_L - PAD_R);
+      const ttW = 155;
+      let left = xPx + 12;
+      if (left + ttW > W) left = xPx - ttW - 12;
+      tt.style.left    = left + 'px';
+      tt.style.top     = '24px';
+      tt.style.display = '';
+    }
+
+    function hideTooltip() {
+      const tt = document.getElementById('mc-tooltip');
+      if (tt) tt.style.display = 'none';
+    }
+
+    // ---- Leyenda ----
+    function buildLegend() {
+      const el = document.getElementById('mc-legend');
+      if (!el) return;
+      el.innerHTML = MC_SEMANAS.map((s, i) =>
+        `<div class="mc-legend-item">
+          <div class="mc-legend-line" style="background:${COLORS[i % COLORS.length]}"></div>
+          <span>${s}</span>
+        </div>`
+      ).join('');
+    }
+
+    // ---- Interacciones canvas ----
+    function bindCanvas() {
+      const canvas = document.getElementById('mc-canvas');
+      if (!canvas) return;
+
+      canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        const x    = e.clientX - rect.left;
+        const PAD_L = 50, PAD_R = 20;
+        const iW  = rect.width - PAD_L - PAD_R;
+        const d   = Math.round((x - PAD_L) / iW * 6);
+        if (d >= 0 && d <= 6) {
+          if (d !== hoveredDay) { hoveredDay = d; draw(); }
+          showTooltip(d, rect);
+        } else {
+          if (hoveredDay !== null) { hoveredDay = null; draw(); hideTooltip(); }
+        }
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        hoveredDay = null; draw(); hideTooltip();
+      });
+    }
+
+    // ---- API pública ----
+    window.setVar = function(btn) {
+      document.querySelectorAll('.mc-var-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentVar = btn.dataset.var;
+      hoveredDay = null; hideTooltip(); draw();
+    };
+
+    window.setPlayer = function(val) {
+      currentPlayer = val;
+      hoveredDay = null; hideTooltip(); draw();
+    };
+
+    // ---- Init ----
+    document.addEventListener('DOMContentLoaded', () => {
+      buildLegend();
+      bindCanvas();
+      draw();
+      // Redibujar al cambiar tamaño de ventana
+      window.addEventListener('resize', draw);
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Caddy reverse proxy — SSL automático vía Let's Encrypt.
+# Nota: .app exige HTTPS (HSTS preload); Caddy lo maneja solo.
+
+miplantel.app, www.miplantel.app {
+    reverse_proxy 127.0.0.1:8001
+}
+
+# Cuando quieras, aquí se agregan los demás servicios del VPS:
+# supabase.saidcoach.com {
+#     reverse_proxy 127.0.0.1:8000
+# }
+# n8n.saidcoach.com {
+#     reverse_proxy 127.0.0.1:5678
+# }

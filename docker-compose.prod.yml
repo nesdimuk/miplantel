@@ -1,0 +1,32 @@
+# Producción en el VPS. Uso:
+#   docker compose -f docker-compose.prod.yml up -d --build
+services:
+  miplantel-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: miplantel
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: miplantel
+    volumes:
+      - miplantel_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U miplantel"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  miplantel:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://miplantel:${DB_PASSWORD}@miplantel-db:5432/miplantel
+    depends_on:
+      miplantel-db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8010:8000"   # solo accesible desde el host; nginx hace de puerta de entrada (8001 lo usa el bot sc2)
+
+volumes:
+  miplantel_pgdata:

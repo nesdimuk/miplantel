@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Hoy{% endblock %}
+{% block content %}
+<h1>{{ club.nombre }} — {{ hoy.strftime("%d/%m/%Y") }}</h1>
+<p class="muted">Vista del día: quién registró y quién falta.</p>
+
+{% for b in bloques %}
+<div class="card">
+  <h2 style="margin-top:0">
+    {{ b.categoria.nombre }}
+    <span class="muted">({{ b.categoria.hora_inicio }}–{{ b.categoria.hora_fin }})</span>
+    {% if b.sesion %}
+      <span class="pill info">{{ b.sesion.total_checkins }} check-ins</span>
+      <span class="pill info">{{ b.sesion.total_checkouts }} check-outs</span>
+      {% if b.sesion.semaforo_enviado %}<span class="pill ok">Semáforo ✓</span>{% endif %}
+      {% if b.sesion.resumen_enviado %}<span class="pill ok">Resumen ✓</span>{% endif %}
+    {% endif %}
+  </h2>
+
+  <p>
+    <form class="inline" method="post" action="/admin/{{ club.slug }}/categorias/{{ b.categoria.id }}/reenviar-semaforo">
+      <button class="btn small gray" type="submit">🚦 Reenviar semáforo</button>
+    </form>
+    <form class="inline" method="post" action="/admin/{{ club.slug }}/categorias/{{ b.categoria.id }}/reenviar-resumen">
+      <button class="btn small gray" type="submit">📊 Reenviar resumen</button>
+    </form>
+    <a class="btn small gray" href="/qr/{{ club.slug }}/{{ b.categoria.nombre }}" target="_blank">📱 Ver QR</a>
+  </p>
+
+  <table>
+    <tr><th>Jugador</th><th>Check-in</th><th>Check-out</th><th>Molestia</th></tr>
+    {% for f in b.filas %}
+    <tr>
+      <td>{{ f.jugador.apellido }}, {{ f.jugador.nombre }}</td>
+      <td>
+        {% if f.checkin and f.checkin.asistencia %}<span class="pill ok">✓ Asiste</span>
+        {% elif f.checkin %}<span class="pill warn">✗ {{ f.checkin.motivo_inasistencia }}</span>
+        {% else %}<span class="pill off">Pendiente</span>{% endif %}
+      </td>
+      <td>
+        {% if f.checkout %}<span class="pill ok">RPE {{ f.checkout.rpe }} · {{ f.checkout.carga }}</span>
+        {% elif f.checkin and f.checkin.asistencia %}<span class="pill off">Pendiente</span>
+        {% else %}—{% endif %}
+      </td>
+      <td>{% if f.molestia %}<span class="pill bad">⚠️ Sí</span>{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endfor %}
+{% endblock %}

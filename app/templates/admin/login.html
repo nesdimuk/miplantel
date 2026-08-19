@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar · Mi Plantel</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <form class="login-box" method="post" action="/admin/login">
+    <h1>⚙️ Mi Plantel</h1>
+    <p class="login-sub">Panel de tu club</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <input type="email" name="email" placeholder="Email del club" autofocus required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <button class="btn" type="submit">Entrar</button>
+    <p class="login-sub">¿Tu club aún no está? <a href="/registro">Regístralo gratis</a></p>
+  </form>
+</body>
+</html>

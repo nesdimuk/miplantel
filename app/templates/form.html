@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{{ club_nombre }} · {{ categoria_nombre }}</title>
+  <link rel="stylesheet" href="/static/form.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="club">{{ club_nombre }}</div>
+    <div class="cat">{{ categoria_nombre }} · {{ fecha_display }}</div>
+  </header>
+
+  <main id="app">
+
+    <!-- Pantalla 0: elegir tipo de registro -->
+    <section id="screen-inicio" class="screen active">
+      <h1>Hola 👋</h1>
+      <p class="sub">¿Qué quieres registrar?</p>
+      <button class="btn-big btn-primary" data-action="ir-checkin">
+        ☀️ Check-in<span class="btn-sub">antes de entrenar</span>
+      </button>
+      <button class="btn-big btn-secondary" data-action="ir-checkout">
+        🌙 Check-out<span class="btn-sub">después de entrenar</span>
+      </button>
+    </section>
+
+    <!-- Pantalla 1: elegir jugador -->
+    <section id="screen-jugador" class="screen">
+      <h2>¿Quién eres?</h2>
+      <select id="select-jugador" class="input-big">
+        <option value="">Elige tu nombre…</option>
+      </select>
+      <button class="btn-big btn-primary" data-action="jugador-listo" disabled id="btn-jugador">Continuar</button>
+      <button class="btn-link" data-action="volver-inicio">← Volver</button>
+    </section>
+
+    <!-- CHECK-IN: ¿Vas a entrenar hoy? -->
+    <section id="screen-asistencia" class="screen">
+      <h2>¿Vas a entrenar hoy?</h2>
+      <button class="btn-big btn-primary" data-action="asiste-si">✅ Sí, voy</button>
+      <button class="btn-big btn-warn" data-action="asiste-no">❌ No puedo ir</button>
+    </section>
+
+    <!-- CHECK-IN: motivo inasistencia -->
+    <section id="screen-motivo" class="screen">
+      <h2>¿Por qué no puedes ir?</h2>
+      <div class="chips" id="chips-motivo">
+        <button class="chip" data-motivo="Enfermedad">🤒 Enfermedad</button>
+        <button class="chip" data-motivo="Lesión">🩹 Lesión</button>
+        <button class="chip" data-motivo="Estudios">📚 Estudios</button>
+        <button class="chip" data-motivo="Viaje">🚌 Viaje</button>
+        <button class="chip" data-motivo="Familiar">🏠 Motivo familiar</button>
+        <button class="chip" data-motivo="Otro">✏️ Otro</button>
+      </div>
+      <input type="text" id="motivo-otro" class="input-big hidden" placeholder="Cuéntanos brevemente…" maxlength="200">
+      <button class="btn-big btn-primary" data-action="enviar-inasistencia" disabled id="btn-motivo">Avisar al profe</button>
+    </section>
+
+    <!-- CHECK-IN: escalas de bienestar (una por pantalla) -->
+    <section id="screen-escala" class="screen">
+      <div class="progreso" id="escala-progreso"></div>
+      <h2 id="escala-titulo"></h2>
+      <p class="sub" id="escala-pregunta"></p>
+      <div class="escala" id="escala-botones"></div>
+      <div class="escala-labels">
+        <span id="escala-label-min"></span>
+        <span id="escala-label-max"></span>
+      </div>
+    </section>
+
+    <!-- CHECK-IN: molestia previa -->
+    <section id="screen-molestia" class="screen">
+      <h2 id="molestia-titulo">¿Tienes alguna molestia física?</h2>
+      <button class="btn-big btn-secondary" data-action="molestia-no">👍 No, estoy bien</button>
+      <button class="btn-big btn-warn" data-action="molestia-si">⚠️ Sí, tengo una molestia</button>
+    </section>
+
+    <!-- Zona de molestia -->
+    <section id="screen-zona" class="screen">
+      <h2>¿Dónde te molesta?</h2>
+      <div class="chips" id="chips-zona">
+        <button class="chip" data-zona="Tobillo/pie">🦶 Tobillo / pie</button>
+        <button class="chip" data-zona="Rodilla">🦵 Rodilla</button>
+        <button class="chip" data-zona="Muslo posterior">🍗 Muslo posterior</button>
+        <button class="chip" data-zona="Muslo anterior">🦿 Muslo anterior</button>
+        <button class="chip" data-zona="Cadera/ingle">🩳 Cadera / ingle</button>
+        <button class="chip" data-zona="Espalda">🔙 Espalda</button>
+        <button class="chip" data-zona="Hombro/brazo">💪 Hombro / brazo</button>
+        <button class="chip" data-zona="Otra">✏️ Otra</button>
+      </div>
+      <input type="text" id="zona-otra" class="input-big hidden" placeholder="¿Dónde te molesta? Escríbelo aquí…" maxlength="100">
+      <button class="btn-big btn-primary" data-action="zona-lista" disabled id="btn-zona">Continuar</button>
+    </section>
+
+    <!-- Severidad de molestia -->
+    <section id="screen-severidad" class="screen">
+      <h2 id="severidad-pregunta">¿Puedes entrenar con esta molestia?</h2>
+      <button class="btn-big btn-secondary" data-action="sev-leve">🟢 Sí, sin problema</button>
+      <button class="btn-big btn-warn" data-action="sev-limitante">🟡 Me limita pero puedo</button>
+      <button class="btn-big btn-danger" data-action="sev-bloqueante">🔴 No puedo entrenar</button>
+    </section>
+
+    <!-- CHECK-OUT: RPE -->
+    <section id="screen-rpe" class="screen">
+      <h2>¿Qué tan duro fue el entrenamiento?</h2>
+      <p class="sub">Escala de esfuerzo 0 a 10</p>
+      <div class="rpe-grid" id="rpe-grid"></div>
+    </section>
+
+    <!-- Pantalla de envío / feedback -->
+    <section id="screen-enviando" class="screen">
+      <div class="spinner"></div>
+      <p class="sub">Enviando…</p>
+    </section>
+
+    <section id="screen-feedback" class="screen">
+      <div class="feedback-emoji" id="feedback-emoji">🎉</div>
+      <h1 id="feedback-titulo"></h1>
+      <p class="feedback-msg" id="feedback-msg"></p>
+      <button class="btn-big btn-secondary" data-action="reiniciar">Registrar otro jugador</button>
+    </section>
+
+    <section id="screen-error" class="screen">
+      <div class="feedback-emoji">😕</div>
+      <h2>Algo salió mal</h2>
+      <p class="feedback-msg" id="error-msg"></p>
+      <button class="btn-big btn-primary" data-action="reintentar">Reintentar</button>
+    </section>
+
+  </main>
+
+  <script id="form-data" type="application/json">{{ form_data | tojson }}</script>
+  <script src="/static/form.js"></script>
+</body>
+</html>

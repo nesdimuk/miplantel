@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ club.nombre }} · Dashboard</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <form class="login-box" method="post" action="/d/{{ club.slug }}/login">
+    <h1>📊 {{ club.nombre }}</h1>
+    <p class="muted">Dashboard del club</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <input type="password" name="password" placeholder="Contraseña del club" autofocus required>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+</body>
+</html>

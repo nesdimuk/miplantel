@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% block title %}Clubes{% endblock %}
+{% block content %}
+<h1>Clubes</h1>
+<div class="card">
+  <table>
+    <tr><th>Club</th><th>Timezone</th><th>Estado</th><th></th></tr>
+    {% for c in clubes %}
+    <tr>
+      <td><strong>{{ c.nombre }}</strong></td>
+      <td>{{ c.timezone }}</td>
+      <td><span class="pill {{ 'ok' if c.activo else 'off' }}">{{ 'Activo' if c.activo else 'Inactivo' }}</span></td>
+      <td><a class="btn small" href="/admin/{{ c.slug }}">Administrar</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

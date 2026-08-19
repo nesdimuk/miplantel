@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.env
+.env.*
+!.env.production.example
+tests
+.pytest_cache
+.git
+deploy
+docker-compose.prod.yml

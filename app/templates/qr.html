@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR · {{ club_nombre }} {{ categoria_nombre }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 40px 24px; text-align: center; color: #1a1a1a;
+    }
+    .club { font-size: 1.6rem; font-weight: 800; color: #0d47a1; }
+    .cat { font-size: 1.2rem; color: #607080; margin-top: 4px; }
+    h1 { font-size: 2rem; margin: 28px 0 8px; }
+    .sub { color: #607080; font-size: 1.05rem; }
+    img { width: 320px; max-width: 80vw; margin: 28px 0; }
+    .pasos { text-align: left; font-size: 1.05rem; line-height: 2; }
+    .url { margin-top: 24px; font-size: 0.85rem; color: #90a4ae; word-break: break-all; }
+    .print-btn {
+      margin-top: 28px; padding: 12px 28px; font-size: 1rem; font-weight: 600;
+      background: #1565c0; color: #fff; border: none; border-radius: 10px; cursor: pointer;
+    }
+    @media print { .print-btn { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="club">{{ club_nombre }}</div>
+  <div class="cat">{{ categoria_nombre }}</div>
+  <h1>📋 Registro diario</h1>
+  <p class="sub">Escanea con la cámara de tu teléfono</p>
+  <img src="{{ qr_src }}" alt="Código QR del formulario">
+  <div class="pasos">
+    ☀️ <strong>Antes de entrenar:</strong> haz tu check-in<br>
+    🌙 <strong>Después de entrenar:</strong> haz tu check-out
+  </div>
+  <div class="url">{{ form_url }}</div>
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimir</button>
+</body>
+</html>

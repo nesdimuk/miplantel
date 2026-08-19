@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Categorías{% endblock %}
+{% block content %}
+<h1>Categorías — {{ club.nombre }}</h1>
+
+<div class="card">
+  <h2 style="margin-top:0">Nueva categoría</h2>
+  <form class="row" method="post" action="/admin/{{ club.slug }}/categorias">
+    <div class="field"><label>Nombre</label><input name="nombre" required placeholder="Sub-15"></div>
+    <div class="field"><label>Inicio</label><input name="hora_inicio" type="time" required></div>
+    <div class="field"><label>Fin</label><input name="hora_fin" type="time" required></div>
+    <div class="field"><label>Hora resumen</label><input name="hora_resumen" type="time" value="19:00"></div>
+    <div class="field"><label>Mín. check-ins semáforo</label><input name="min_checkins_semaforo" type="number" value="10" style="width:80px"></div>
+    <div class="field"><label>Umbral carga semanal</label><input name="umbral_alerta_carga" type="number" value="3500" style="width:80px"></div>
+    <div class="field"><label>Días</label>
+      <div class="checkgroup">
+        {% for d in dias_nombres %}
+        <label><input type="checkbox" name="dias" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 < 5 }}> {{ d }}</label>
+        {% endfor %}
+      </div>
+    </div>
+    <button class="btn" type="submit">Crear</button>
+  </form>
+</div>
+
+{% for c in categorias %}
+<div class="card">
+  <h2 style="margin-top:0">{{ c.nombre }}
+    <span class="pill {{ 'ok' if c.activo else 'off' }}">{{ 'Activa' if c.activo else 'Inactiva' }}</span>
+    <a class="btn small gray" href="/qr/{{ club.slug }}/{{ c.nombre }}" target="_blank" style="float:right">📱 Ver QR</a>
+  </h2>
+  <form class="row" method="post" action="/admin/{{ club.slug }}/categorias/{{ c.id }}/editar">
+    <div class="field"><label>Inicio</label><input name="hora_inicio" type="time" value="{{ c.hora_inicio }}"></div>
+    <div class="field"><label>Fin</label><input name="hora_fin" type="time" value="{{ c.hora_fin }}"></div>
+    <div class="field"><label>Hora resumen</label><input name="hora_resumen" type="time" value="{{ c.hora_resumen }}"></div>
+    <div class="field"><label>Mín. semáforo</label><input name="min_checkins_semaforo" type="number" value="{{ c.min_checkins_semaforo }}" style="width:80px"></div>
+    <div class="field"><label>Umbral carga</label><input name="umbral_alerta_carga" type="number" value="{{ c.umbral_alerta_carga }}" style="width:80px"></div>
+    <div class="field"><label>Días de entrenamiento</label>
+      <div class="checkgroup">
+        {% for d in dias_nombres %}
+        <label><input type="checkbox" name="dias" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in c.dias_entrenamiento }}> {{ d }}</label>
+        {% endfor %}
+      </div>
+    </div>
+    <button class="btn" type="submit">Guardar</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Jugadores{% endblock %}
+{% block content %}
+<h1>Jugadores — {{ club.nombre }}</h1>
+
+<div class="card">
+  <h2 style="margin-top:0">Agregar jugador</h2>
+  <form class="row" method="post" action="/admin/{{ club.slug }}/jugadores">
+    <div class="field"><label>Nombre</label><input name="nombre" required></div>
+    <div class="field"><label>Apellido</label><input name="apellido" required></div>
+    <div class="field"><label>Categoría</label>
+      <select name="categoria_id">
+        {% for c in categorias %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn" type="submit">Agregar</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">Carga masiva</h2>
+  <p class="muted">Pega la lista: un jugador por línea, «Nombre Apellido». Máx. 200 por vez.</p>
+  <form method="post" action="/admin/{{ club.slug }}/jugadores/masivo" style="margin-top:10px">
+    <div class="row">
+      <div class="field" style="flex:1; min-width:260px">
+        <label>Lista de jugadores</label>
+        <textarea name="lista" rows="6" placeholder="Matías González&#10;Sebastián Muñoz&#10;Diego Rojas" required style="width:100%"></textarea>
+      </div>
+      <div class="field"><label>Categoría</label>
+        <select name="categoria_id">
+          {% for c in categorias %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn" type="submit">Cargar todos</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <tr><th>Jugador</th><th>Categoría</th><th>Estado</th><th></th></tr>
+    {% for j, categoria_nombre in jugadores %}
+    <tr>
+      <td>
+        <form class="row" method="post" action="/admin/{{ club.slug }}/jugadores/{{ j.id }}/editar">
+          <input name="nombre" value="{{ j.nombre }}" style="width:110px">
+          <input name="apellido" value="{{ j.apellido }}" style="width:110px">
+          <select name="categoria_id">
+            {% for c in categorias %}
+            <option value="{{ c.id }}" {{ 'selected' if c.id == j.categoria_id }}>{{ c.nombre }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn small gray" type="submit">Guardar</button>
+        </form>
+      </td>
+      <td>{{ categoria_nombre }}</td>
+      <td><span class="pill {{ 'ok' if j.activo else 'off' }}">{{ 'Activo' if j.activo else 'Inactivo' }}</span></td>
+      <td>
+        <form class="inline" method="post" action="/admin/{{ club.slug }}/jugadores/{{ j.id }}/toggle">
+          <button class="btn small {{ 'warn' if j.activo else '' }}" type="submit">
+            {{ 'Desactivar' if j.activo else 'Activar' }}
+          </button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

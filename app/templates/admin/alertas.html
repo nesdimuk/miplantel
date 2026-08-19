@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ club.nombre }} · Alertas{% endblock %}
+{% block content %}
+<h1>Log de alertas — {{ club.nombre }}</h1>
+<p class="muted">Últimos 100 envíos, con estado de entrega confirmado por Meta.</p>
+
+<div class="card">
+  <table>
+    <tr><th>#</th><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Destinatario</th><th>Mensaje</th><th>Estado</th></tr>
+    {% for a, categoria_nombre in alertas %}
+    <tr>
+      <td class="muted">{{ a.id }}</td>
+      <td>{{ a.created_at.strftime("%d/%m %H:%M") }}</td>
+      <td><span class="pill info">{{ a.tipo }}</span></td>
+      <td>{{ categoria_nombre }}</td>
+      <td>{{ a.destinatario }}</td>
+      <td style="max-width:340px"><span class="muted">{{ a.mensaje[:120] }}{{ '…' if a.mensaje|length > 120 }}</span></td>
+      <td>
+        {% set estilo = {'read': 'ok', 'delivered': 'ok', 'sent': 'info', 'failed': 'bad', 'pending': 'off'} %}
+        <span class="pill {{ estilo.get(a.estado_envio, 'off') }}">{{ a.estado_envio }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
