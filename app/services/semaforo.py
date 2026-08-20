@@ -47,7 +47,7 @@ async def hora_disparo_semaforo(db: AsyncSession, cat: Categoria, fecha: date) -
         )
     )
     valores = [r[0] for r in result.all()]
-    if len(valores) >= 3:
+    if len(valores) >= 5:
         modo = Counter(valores).most_common(1)[0][0]
         return _min_to_hhmm(_hhmm_to_min(modo) - 5)
     return cat.hora_inicio
