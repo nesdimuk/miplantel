@@ -10,12 +10,52 @@ from app.services.alertas import enviar_a_staff
 
 logger = logging.getLogger("services.bienestar")
 
-UMBRAL_BIENESTAR = 2.0   # avg ≤ 2 on a 1-7 scale triggers the alert
+UMBRAL_ROJO = 3.5        # bienestar score below this triggers immediate alert
+UMBRAL_BIENESTAR = 2.0   # avg ≤ 2 on a 1-7 scale triggers trend alert
 REGISTROS_BIENESTAR = 3  # over the player's last N attendance check-ins
 
 
 async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> bool:
-    """Alert staff when a player's sleep or mood is critically low. Max one alert per day."""
+    """Alert staff when a player's today bienestar is ROJO, or trend is critically low."""
+    checkin_hoy = (await db.execute(
+        select(Checkin)
+        .where(
+            Checkin.jugador_id == jugador.id,
+            Checkin.fecha == fecha,
+            Checkin.asistencia == True,  # noqa: E712
+        )
+    )).scalar_one_or_none()
+
+    if checkin_hoy and all(
+        getattr(checkin_hoy, f) is not None
+        for f in ("sueno", "energia", "animo", "dolor_pre")
+    ):
+        bienestar = (
+            checkin_hoy.sueno + checkin_hoy.energia + checkin_hoy.animo
+            + (8 - checkin_hoy.dolor_pre)
+        ) / 4
+        if bienestar < UMBRAL_ROJO and not await _ya_alertado_hoy(db, "bienestar_rojo", jugador.id, fecha):
+            categoria = await db.get(Categoria, jugador.categoria_id)
+            await enviar_a_staff(
+                db,
+                club_id=categoria.club_id,
+                tipo="bienestar_rojo",
+                categoria_id=categoria.id,
+                jugador_id=jugador.id,
+                template="alerta_bienestar_rojo",
+                variables=[
+                    categoria.nombre,
+                    f"{jugador.nombre} {jugador.apellido}",
+                    str(checkin_hoy.sueno),
+                    str(checkin_hoy.energia),
+                    str(checkin_hoy.animo),
+                    str(checkin_hoy.dolor_pre),
+                ],
+            )
+            logger.info("Alerta bienestar ROJO: jugador=%s bienestar=%.2f", jugador.id, bienestar)
+            return True
+
+    # Trend alert: last N check-ins with critically low sleep or mood
     ultimos = (await db.execute(
         select(Checkin.sueno, Checkin.animo)
         .where(Checkin.jugador_id == jugador.id, Checkin.asistencia == True)  # noqa: E712
@@ -53,7 +93,7 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
             str(REGISTROS_BIENESTAR),
         ],
     )
-    logger.info("Alerta bienestar: jugador=%s %s=%.1f", jugador.id, metrica, valor)
+    logger.info("Alerta bienestar tendencia: jugador=%s %s=%.1f", jugador.id, metrica, valor)
     return True
 
 
