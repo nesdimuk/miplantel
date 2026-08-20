@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.engine import get_db
@@ -75,8 +75,16 @@ async def create_checkin(payload: CheckinCreate, db: AsyncSession = Depends(get_
             await bienestar.revisar_bienestar(db, jugador, payload.fecha)
 
         categoria = await db.get(Categoria, jugador.categoria_id)
-        if nuevo_total >= categoria.min_checkins_semaforo:
-            await semaforo.enviar_semaforo(db, categoria, payload.fecha)
+        total_activos_result = await db.execute(
+                select(func.count(Jugador.id)).where(
+                    Jugador.categoria_id == categoria.id,
+                    Jugador.activo == True,  # noqa: E712
+                )
+            )
+        total_activos = total_activos_result.scalar_one()
+        umbral = max(5, round(total_activos * 0.6))
+        if nuevo_total >= umbral:
+            await semaforo.enviar_semaforo(db, categoria, payload.fecha, total_activos=total_activos)
     except Exception:
         logger.exception("Error enviando alertas de check-in (jugador_id=%s)", jugador.id)
 

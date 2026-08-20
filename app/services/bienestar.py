@@ -4,7 +4,7 @@ from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import AlertaLog, Categoria, Checkin, Jugador
+from app.db.models import AlertaLog, Categoria, Checkin, Jugador, SesionDia
 from app.services import carga as carga_svc
 from app.services.alertas import enviar_a_staff
 
@@ -36,13 +36,21 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
         ) / 4
         if bienestar < UMBRAL_ROJO and not await _ya_alertado_hoy(db, "bienestar_rojo", jugador.id, fecha):
             categoria = await db.get(Categoria, jugador.categoria_id)
+            semaforo_enviado = (await db.execute(
+                select(SesionDia.semaforo_enviado).where(
+                    SesionDia.categoria_id == categoria.id,
+                    SesionDia.fecha == fecha,
+                )
+            )).scalar_one_or_none()
+            template = "alerta_bienestar_rojo_tardio" if semaforo_enviado else "alerta_bienestar_rojo"
+            tipo = "bienestar_rojo_tardio" if semaforo_enviado else "bienestar_rojo"
             await enviar_a_staff(
                 db,
                 club_id=categoria.club_id,
-                tipo="bienestar_rojo",
+                tipo=tipo,
                 categoria_id=categoria.id,
                 jugador_id=jugador.id,
-                template="alerta_bienestar_rojo",
+                template=template,
                 variables=[
                     categoria.nombre,
                     f"{jugador.nombre} {jugador.apellido}",
@@ -52,7 +60,8 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
                     str(checkin_hoy.dolor_pre),
                 ],
             )
-            logger.info("Alerta bienestar ROJO: jugador=%s bienestar=%.2f", jugador.id, bienestar)
+            logger.info("Alerta bienestar ROJO%s: jugador=%s bienestar=%.2f",
+                        " tardío" if semaforo_enviado else "", jugador.id, bienestar)
             return True
 
     # Trend alert: last N check-ins with critically low sleep or mood

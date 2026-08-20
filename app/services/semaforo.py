@@ -53,16 +53,19 @@ async def hora_disparo_semaforo(db: AsyncSession, cat: Categoria, fecha: date) -
     return cat.hora_inicio
 
 
+UMBRAL_ROJO_BIENESTAR = 3.5
+
+
+def _bienestar_jugador(c: Checkin) -> Optional[float]:
+    if any(getattr(c, f) is None for f in ("sueno", "energia", "animo", "dolor_pre")):
+        return None
+    return (c.sueno + c.energia + c.animo + (8 - c.dolor_pre)) / 4
+
+
 async def calcular_semaforo(db: AsyncSession, categoria_id: int, fecha: date) -> Optional[dict]:
-    """Compute squad wellness averages from today's check-ins. None if no data."""
+    """Return checkin count and list of rojo players for today. None if no data."""
     result = await db.execute(
-        select(
-            func.count(Checkin.id),
-            func.avg(Checkin.sueno),
-            func.avg(Checkin.energia),
-            func.avg(Checkin.animo),
-            func.avg(Checkin.dolor_pre),
-        )
+        select(Checkin, Jugador)
         .join(Jugador, Checkin.jugador_id == Jugador.id)
         .where(
             Jugador.categoria_id == categoria_id,
@@ -70,23 +73,24 @@ async def calcular_semaforo(db: AsyncSession, categoria_id: int, fecha: date) ->
             Checkin.asistencia == True,  # noqa: E712
         )
     )
-    count, sueno, energia, animo, dolor = result.one()
-    if not count:
+    rows = result.all()
+    if not rows:
         return None
 
-    sueno, energia, animo, dolor = float(sueno), float(energia), float(animo), float(dolor)
-    bienestar = (sueno + energia + animo + (8 - dolor)) / 4
-    estado = next(nombre for umbral, nombre in ESTADOS if bienestar >= umbral)
+    rojos = []
+    for checkin, jugador in rows:
+        b = _bienestar_jugador(checkin)
+        if b is not None and b < UMBRAL_ROJO_BIENESTAR:
+            rojos.append({
+                "nombre": f"{jugador.nombre} {jugador.apellido}",
+                "sueno": checkin.sueno,
+                "energia": checkin.energia,
+                "animo": checkin.animo,
+                "dolor": checkin.dolor_pre,
+                "bienestar": round(b, 2),
+            })
 
-    return {
-        "checkins": count,
-        "sueno": round(sueno, 1),
-        "energia": round(energia, 1),
-        "animo": round(animo, 1),
-        "dolor": round(dolor, 1),
-        "bienestar": round(bienestar, 2),
-        "estado": estado,
-    }
+    return {"checkins": len(rows), "rojos": rojos}
 
 
 async def enviar_semaforo(
@@ -94,9 +98,11 @@ async def enviar_semaforo(
     categoria: Categoria,
     fecha: date,
     forzado: bool = False,
+    total_activos: int = 0,
 ) -> bool:
-    """Send the squad wellness traffic light to staff, exactly once per day.
+    """Send pre-training wellness report to staff, exactly once per day.
 
+    Lists players in rojo; if none, sends a positive message.
     Returns True if this call performed the send.
     """
     stats = await calcular_semaforo(db, categoria.id, fecha)
@@ -104,32 +110,39 @@ async def enviar_semaforo(
         logger.debug("Semáforo %s %s: sin datos, se omite", categoria.nombre, fecha)
         return False
 
-    if not forzado and stats["checkins"] < categoria.min_checkins_semaforo:
-        return False
+    if not forzado and total_activos > 0:
+        umbral = max(5, round(total_activos * 0.6))
+        if stats["checkins"] < umbral:
+            return False
 
     if not await _claim_semaforo(db, categoria.id, fecha):
-        return False  # already sent (or being sent by a concurrent request)
+        return False
 
-    variables = [
-        categoria.nombre,
-        fecha.strftime("%d/%m/%Y"),
-        stats["estado"],
-        str(stats["checkins"]),
-        str(stats["sueno"]),
-        str(stats["energia"]),
-        str(stats["animo"]),
-        str(stats["dolor"]),
-    ]
+    if stats["rojos"]:
+        lineas = "\n".join(
+            f"• {j['nombre']} — sueño {j['sueno']}, energía {j['energia']}, ánimo {j['animo']}, dolor {j['dolor']}"
+            for j in stats["rojos"]
+        )
+        bloque = f"🔴 Jugadores que vienen bajo hoy:\n{lineas}"
+    else:
+        bloque = "💪 Todo el grupo viene bien hoy"
+
+    total_str = str(total_activos) if total_activos else "?"
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
         tipo="semaforo",
         categoria_id=categoria.id,
         jugador_id=None,
-        template="semaforo_diario",
-        variables=variables,
+        template="semaforo_checkin",
+        variables=[
+            categoria.nombre,
+            bloque,
+            str(stats["checkins"]),
+            total_str,
+        ],
     )
-    logger.info("Semáforo enviado: %s %s → %s", categoria.nombre, fecha, stats["estado"])
+    logger.info("Semáforo enviado: %s %s — %d rojos", categoria.nombre, fecha, len(stats["rojos"]))
     return True
 
 

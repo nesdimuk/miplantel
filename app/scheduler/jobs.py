@@ -10,11 +10,11 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from app.db.engine import AsyncSessionLocal
-from app.db.models import Categoria
+from app.db.models import Categoria, Jugador
 from app.services import recordatorios as recordatorios_svc
 from app.services import resumen as resumen_svc
 from app.services import semaforo as semaforo_svc
@@ -46,7 +46,13 @@ async def tick() -> None:
                 await recordatorios_svc.evaluar_recordatorios(db, cat, hoy, hhmm)
                 hora_disparo = await semaforo_svc.hora_disparo_semaforo(db, cat, hoy)
                 if hhmm >= hora_disparo:
-                    await semaforo_svc.enviar_semaforo(db, cat, hoy, forzado=True)
+                    total_activos = (await db.execute(
+                        select(func.count(Jugador.id)).where(
+                            Jugador.categoria_id == cat.id,
+                            Jugador.activo == True,  # noqa: E712
+                        )
+                    )).scalar_one()
+                    await semaforo_svc.enviar_semaforo(db, cat, hoy, forzado=True, total_activos=total_activos)
                 if hhmm >= cat.hora_resumen:
                     await resumen_svc.enviar_resumen(db, cat, hoy)
 

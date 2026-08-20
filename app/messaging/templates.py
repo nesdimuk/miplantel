@@ -28,6 +28,11 @@ TEMPLATES: dict[str, str] = {
         "Estado del plantel: *{{3}}*\n"
         "Check-ins: {{4}} | Sueño: {{5}} | Energía: {{6}} | Ánimo: {{7}} | Dolor: {{8}}"
     ),
+    "semaforo_checkin": (
+        "⚠️ *Pre-entrenamiento — {{1}}*\n\n"
+        "{{2}}\n\n"
+        "✅ {{3}} de {{4}} jugadores registraron check-in"
+    ),
     "resumen_diario": (
         "📊 *Resumen {{1}}* — {{2}}\n"
         "Asistencia: {{3}}\n"
@@ -40,6 +45,16 @@ TEMPLATES: dict[str, str] = {
         "🔻 *Bienestar bajo* — {{1}}\n"
         "{{2}} registra {{3}} muy bajo en sus últimos {{4}} registros.\n"
         "Sugerimos conversar con el jugador."
+    ),
+    "alerta_bienestar_rojo": (
+        "🔴 *Bienestar bajo hoy* — {{1}}\n"
+        "{{2}} viene en rojo:\n"
+        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}"
+    ),
+    "alerta_bienestar_rojo_tardio": (
+        "⚠️ *Check-in tardío en rojo* — {{1}}\n"
+        "{{2}} registró después del reporte y viene en rojo:\n"
+        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}"
     ),
     "recordatorio_checkin": (
         "🔔 *Recordatorio* — {{1}}\n"
