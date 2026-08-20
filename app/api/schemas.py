@@ -15,6 +15,7 @@ class CheckinCreate(BaseModel):
     animo: Optional[int] = Field(None, ge=1, le=7)
     dolor_pre: Optional[int] = Field(None, ge=1, le=7)
     alimentacion: Optional[int] = Field(None, ge=1, le=7)
+    hora_inicio_declarada: Optional[str] = Field(None, pattern=r"^\d{2}:\d{2}$")
     molestia_previa: Optional[bool] = None
     molestia_zona: Optional[str] = Field(None, max_length=100)
     molestia_severidad: Optional[str] = Field(None, pattern="^(leve|limitante|bloqueante)$")
@@ -46,7 +47,8 @@ class CheckoutCreate(BaseModel):
     jugador_id: int
     fecha: date
     rpe: int = Field(..., ge=0, le=10)
-    duracion_min: Optional[int] = Field(None, ge=1, le=300)  # None = derive from categoria config
+    duracion_min: Optional[int] = Field(None, ge=1, le=300)  # None = derive from hora_termino or categoria config
+    hora_termino: Optional[str] = Field(None, pattern=r"^\d{2}:\d{2}$")
     fisico_post: Optional[int] = Field(None, ge=1, le=7)
     rendimiento: Optional[int] = Field(None, ge=1, le=7)
     molestia_nueva: Optional[bool] = None

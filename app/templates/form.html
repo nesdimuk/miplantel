@@ -102,6 +102,24 @@
       <button class="btn-big btn-danger" data-action="sev-bloqueante">🔴 No puedo entrenar</button>
     </section>
 
+    <!-- CHECK-IN: hora de inicio declarada -->
+    <section id="screen-hora-inicio" class="screen">
+      <h2>⏰ ¿A qué hora empieza el entrenamiento?</h2>
+      <p class="sub">Escríbela si la sabes (puedes saltarte esto)</p>
+      <input type="time" id="input-hora-inicio" class="input-big">
+      <button class="btn-big btn-primary" data-action="hora-inicio-lista" id="btn-hora-inicio">Confirmar hora</button>
+      <button class="btn-link" data-action="hora-inicio-saltar">Saltarme esta pregunta →</button>
+    </section>
+
+    <!-- CHECK-OUT: hora de término declarada -->
+    <section id="screen-hora-termino" class="screen">
+      <h2>⏰ ¿A qué hora terminaste de entrenar?</h2>
+      <p class="sub">Escríbela si la sabes (puedes saltarte esto)</p>
+      <input type="time" id="input-hora-termino" class="input-big">
+      <button class="btn-big btn-primary" data-action="hora-termino-lista" id="btn-hora-termino">Confirmar hora</button>
+      <button class="btn-link" data-action="hora-termino-saltar">Saltarme esta pregunta →</button>
+    </section>
+
     <!-- CHECK-OUT: RPE -->
     <section id="screen-rpe" class="screen">
       <h2>¿Qué tan duro fue el entrenamiento?</h2>

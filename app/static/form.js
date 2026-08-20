@@ -223,6 +223,16 @@ function mostrarFeedback(data) {
   show("screen-feedback");
 }
 
+// ---------- Hora inicio (checkin) ----------
+function _irAHoraInicio() {
+  if (state.modo === "checkin" && state.respuestas.asistencia) {
+    document.getElementById("input-hora-inicio").value = "";
+    show("screen-hora-inicio");
+  } else {
+    enviar();
+  }
+}
+
 // ---------- Acciones ----------
 const acciones = {
   "ir-checkin":  () => { state.modo = "checkin"; show("screen-jugador"); },
@@ -236,7 +246,8 @@ const acciones = {
     if (state.modo === "checkin") {
       show("screen-asistencia");
     } else {
-      show("screen-rpe");
+      document.getElementById("input-hora-termino").value = "";
+      show("screen-hora-termino");
     }
   },
 
@@ -257,7 +268,7 @@ const acciones = {
 
   "molestia-no": () => {
     state.respuestas[state.molestiaCampo] = false;
-    enviar();
+    _irAHoraInicio();
   },
   "molestia-si": () => {
     state.respuestas[state.molestiaCampo] = true;
@@ -270,9 +281,23 @@ const acciones = {
     document.getElementById("severidad-pregunta").textContent = pregunta;
     show("screen-severidad");
   },
-  "sev-leve":       () => { state.respuestas.molestia_severidad = "leve";       enviar(); },
-  "sev-limitante":  () => { state.respuestas.molestia_severidad = "limitante";  enviar(); },
-  "sev-bloqueante": () => { state.respuestas.molestia_severidad = "bloqueante"; enviar(); },
+  "sev-leve":       () => { state.respuestas.molestia_severidad = "leve";       _irAHoraInicio(); },
+  "sev-limitante":  () => { state.respuestas.molestia_severidad = "limitante";  _irAHoraInicio(); },
+  "sev-bloqueante": () => { state.respuestas.molestia_severidad = "bloqueante"; _irAHoraInicio(); },
+
+  "hora-inicio-lista": () => {
+    const val = document.getElementById("input-hora-inicio").value;
+    if (val) state.respuestas.hora_inicio_declarada = val;
+    enviar();
+  },
+  "hora-inicio-saltar": () => { enviar(); },
+
+  "hora-termino-lista": () => {
+    const val = document.getElementById("input-hora-termino").value;
+    if (val) state.respuestas.hora_termino = val;
+    show("screen-rpe");
+  },
+  "hora-termino-saltar": () => { show("screen-rpe"); },
 
 };
 

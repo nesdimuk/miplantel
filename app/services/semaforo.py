@@ -1,4 +1,5 @@
 import logging
+from collections import Counter
 from datetime import date
 from typing import Optional
 
@@ -18,6 +19,38 @@ ESTADOS = [
     (3.5, "🟠 NARANJA"),
     (0.0, "🔴 ROJO"),
 ]
+
+
+def _hhmm_to_min(hhmm: str) -> int:
+    return int(hhmm[:2]) * 60 + int(hhmm[3:])
+
+
+def _min_to_hhmm(m: int) -> str:
+    m = max(0, m)
+    return f"{m // 60:02d}:{m % 60:02d}"
+
+
+async def hora_disparo_semaforo(db: AsyncSession, cat: Categoria, fecha: date) -> str:
+    """Return HH:MM when the scheduler should fire the semáforo.
+
+    If ≥3 checkins have hora_inicio_declarada today, use the most common
+    value minus 5 min. Otherwise fall back to cat.hora_inicio.
+    """
+    result = await db.execute(
+        select(Checkin.hora_inicio_declarada)
+        .join(Jugador, Checkin.jugador_id == Jugador.id)
+        .where(
+            Jugador.categoria_id == cat.id,
+            Checkin.fecha == fecha,
+            Checkin.asistencia == True,  # noqa: E712
+            Checkin.hora_inicio_declarada.isnot(None),
+        )
+    )
+    valores = [r[0] for r in result.all()]
+    if len(valores) >= 3:
+        modo = Counter(valores).most_common(1)[0][0]
+        return _min_to_hhmm(_hhmm_to_min(modo) - 5)
+    return cat.hora_inicio
 
 
 async def calcular_semaforo(db: AsyncSession, categoria_id: int, fecha: date) -> Optional[dict]:

@@ -90,7 +90,8 @@ class Checkin(Base):
     energia: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)    # 1-7
     animo: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)      # 1-7
     dolor_pre: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)    # 1-7
-    alimentacion: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # 1-7
+    alimentacion: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)       # 1-7
+    hora_inicio_declarada: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)  # HH:MM
     molestia_previa: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     molestia_zona: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     molestia_severidad: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # leve|limitante|bloqueante
@@ -111,6 +112,7 @@ class Checkout(Base):
     carga: Mapped[int] = mapped_column(Integer, nullable=False)          # rpe * duracion_min
     fisico_post: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)   # 1-7
     rendimiento: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)   # 1-7
+    hora_termino: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)   # HH:MM declarado por el jugador
     molestia_nueva: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     molestia_zona: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     molestia_severidad: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # leve|limitante|bloqueante

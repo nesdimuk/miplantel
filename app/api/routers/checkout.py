@@ -20,14 +20,15 @@ async def create_checkout(payload: CheckoutCreate, db: AsyncSession = Depends(ge
         raise HTTPException(404, "Jugador no encontrado")
 
     # Must have checked in with asistencia=True today
-    checkin = await db.execute(
+    checkin_result = await db.execute(
         select(Checkin).where(
             Checkin.jugador_id == payload.jugador_id,
             Checkin.fecha == payload.fecha,
             Checkin.asistencia == True,  # noqa: E712
         )
     )
-    if not checkin.scalar_one_or_none():
+    checkin_hoy = checkin_result.scalar_one_or_none()
+    if not checkin_hoy:
         raise HTTPException(400, "El jugador no tiene check-in de asistencia para esta fecha")
 
     # Idempotency
@@ -47,9 +48,16 @@ async def create_checkout(payload: CheckoutCreate, db: AsyncSession = Depends(ge
             carga=record.carga,
         )
 
-    # Derive duration from categoria config if not provided
-    duracion_min = payload.duracion_min
-    if duracion_min is None:
+    # Derive duration: hora_termino (individual) > duracion_min explícito > config categoría
+    if payload.hora_termino:
+        hora_inicio_ref = checkin_hoy.hora_inicio_declarada
+        if not hora_inicio_ref:
+            categoria = await db.get(Categoria, jugador.categoria_id)
+            hora_inicio_ref = categoria.hora_inicio
+        duracion_min = _calcular_duracion(hora_inicio_ref, payload.hora_termino)
+    elif payload.duracion_min is not None:
+        duracion_min = payload.duracion_min
+    else:
         categoria = await db.get(Categoria, jugador.categoria_id)
         duracion_min = _calcular_duracion(categoria.hora_inicio, categoria.hora_fin)
 
@@ -61,6 +69,7 @@ async def create_checkout(payload: CheckoutCreate, db: AsyncSession = Depends(ge
         rpe=payload.rpe,
         duracion_min=duracion_min,
         carga=carga,
+        hora_termino=payload.hora_termino,
         fisico_post=payload.fisico_post,
         rendimiento=payload.rendimiento,
         molestia_nueva=payload.molestia_nueva,

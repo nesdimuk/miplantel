@@ -44,7 +44,8 @@ async def tick() -> None:
                 hoy = ahora.date()
 
                 await recordatorios_svc.evaluar_recordatorios(db, cat, hoy, hhmm)
-                if hhmm >= cat.hora_inicio:
+                hora_disparo = await semaforo_svc.hora_disparo_semaforo(db, cat, hoy)
+                if hhmm >= hora_disparo:
                     await semaforo_svc.enviar_semaforo(db, cat, hoy, forzado=True)
                 if hhmm >= cat.hora_resumen:
                     await resumen_svc.enviar_resumen(db, cat, hoy)
