@@ -1,5 +1,5 @@
 services:
-  db:
+  miplantel-db:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
@@ -30,7 +30,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
+      miplantel-db:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
