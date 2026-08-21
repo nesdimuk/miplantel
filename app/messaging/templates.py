@@ -8,67 +8,47 @@ templates by name + positional variables; the bodies here are used to:
 """
 
 TEMPLATES: dict[str, str] = {
-    "alerta_molestia": (
-        "🔴 *Molestia — no puede entrenar* — {{1}}\n"
-        "{{2}} reportó molestia en *{{3}}* ({{4}}) y NO puede entrenar.\n"
-        "Revisa el detalle en el panel."
-    ),
-    "alerta_tendencia_molestia": (
-        "🔁 *Molestia recurrente* — {{1}}\n"
-        "{{2}} lleva *{{3}} reportes* de molestia en los últimos 14 días (zona: {{4}}).\n"
-        "Considera evaluarlo antes del próximo entrenamiento."
-    ),
-    "alerta_inasistencia": (
-        "❌ *Inasistencia* — {{1}}\n"
-        "{{2}} avisó que hoy no asistirá.\n"
-        "Motivo: {{3}}"
-    ),
-    "semaforo_diario": (
-        "🚦 *Semáforo {{1}}* — {{2}}\n"
-        "Estado del plantel: *{{3}}*\n"
-        "Check-ins: {{4}} | Sueño: {{5}} | Energía: {{6}} | Ánimo: {{7}} | Dolor: {{8}}"
-    ),
+    # Formato unificado: título corto + link al informe.
+    # El detalle completo vive en la página web — WhatsApp es solo el ping.
     "semaforo_checkin": (
-        "⚠️ *Pre-entrenamiento — {{1}}*\n\n"
-        "{{2}}\n\n"
-        "✅ {{3}} de {{4}} jugadores registraron check-in\n"
-        "{{5}}"
-    ),
-    "resumen_diario": (
-        "📊 *Resumen {{1}}* — {{2}}\n"
-        "Asistencia: {{3}}\n"
-        "Inasistencias: {{4}}\n"
-        "Molestias: {{5}}\n"
-        "Sin check-out: {{6}}\n"
-        "RPE promedio: {{7}} | Carga promedio: {{8}}"
-    ),
-    "alerta_bienestar": (
-        "🔻 *Bienestar bajo* — {{1}}\n"
-        "{{2}} registra {{3}} muy bajo en sus últimos {{4}} registros.\n"
-        "Sugerimos conversar con el jugador."
+        "⚠️ *Pre-entrenamiento · {{1}}*\n"
+        "📊 {{2}}"
     ),
     "alerta_bienestar_rojo": (
-        "🔴 *Bienestar bajo hoy* — {{1}}\n"
-        "{{2}} viene en rojo:\n"
-        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}\n"
-        "{{7}}"
+        "🔴 *Bienestar bajo · {{1}}*\n"
+        "📊 {{2}}"
     ),
     "alerta_bienestar_rojo_tardio": (
-        "⚠️ *Check-in tardío en rojo* — {{1}}\n"
-        "{{2}} registró después del reporte y viene en rojo:\n"
-        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}\n"
-        "{{7}}"
+        "⚠️ *Check-in tardío en rojo · {{1}}*\n"
+        "📊 {{2}}"
     ),
-    "recordatorio_checkin": (
-        "🔔 *Recordatorio* — {{1}}\n"
-        "{{2}}\n"
-        "Check-ins hasta ahora: {{3}}"
+    "alerta_bienestar": (
+        "🔻 *Tendencia baja · {{1}}*\n"
+        "📊 {{2}}"
+    ),
+    "alerta_molestia": (
+        "🩹 *Molestia reportada · {{1}}*\n"
+        "📊 {{2}}"
+    ),
+    "alerta_tendencia_molestia": (
+        "🔁 *Molestia recurrente · {{1}}*\n"
+        "📊 {{2}}"
+    ),
+    "alerta_inasistencia": (
+        "❌ *Inasistencia · {{1}}*\n"
+        "📊 {{2}}"
     ),
     "alerta_carga": (
-        "📈 *Carga alta* — {{1}}\n"
-        "{{2}} acumula una carga semanal de *{{3}}* (umbral: {{4}}).\n"
-        "Considera ajustar su volumen de entrenamiento."
+        "📈 *Carga alta · {{1}}*\n"
+        "📊 {{2}}"
     ),
+    "recordatorio_checkin": (
+        "🔔 *Recordatorio · {{1}}*\n"
+        "📊 {{2}}"
+    ),
+    # Legacy — no se usan en el flujo activo
+    "semaforo_diario": "🚦 *Semáforo {{1}}* — {{2}}",
+    "resumen_diario":  "📊 *Resumen {{1}}* — {{2}}",
 }
 
 

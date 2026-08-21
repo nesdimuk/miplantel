@@ -131,9 +131,10 @@ async def enviar_semaforo(
         bloque = "💪 Todo el grupo viene bien hoy"
 
     total_str = str(total_activos) if total_activos else "?"
-    link = ""
-    if settings.base_url:
-        link = f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
+    link = (
+        f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
+        if settings.base_url else f"/r/{categoria.id}/{fecha.isoformat()}"
+    )
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -141,13 +142,7 @@ async def enviar_semaforo(
         categoria_id=categoria.id,
         jugador_id=None,
         template="semaforo_checkin",
-        variables=[
-            categoria.nombre,
-            bloque,
-            str(stats["checkins"]),
-            total_str,
-            link,
-        ],
+        variables=[categoria.nombre, link],
     )
     logger.info("Semáforo enviado: %s %s — %d rojos", categoria.nombre, fecha, len(stats["rojos"]))
     return True

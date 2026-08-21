@@ -6,6 +6,7 @@ from typing import Optional
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.models import AlertaLog, Categoria, Checkin, Checkout, Jugador, Staff
 from app.messaging import get_provider
 from app.messaging.base import SendResult
@@ -18,6 +19,11 @@ RETRY_DELAYS = [1.0, 2.0]
 MAX_ATTEMPTS = 3
 
 
+def _link(categoria_id: int, fecha: date) -> str:
+    base = settings.base_url.rstrip("/") if settings.base_url else ""
+    return f"{base}/r/{categoria_id}/{fecha.isoformat()}"
+
+
 async def notificar_molestia(
     db: AsyncSession,
     jugador: Jugador,
@@ -27,12 +33,6 @@ async def notificar_molestia(
 ) -> None:
     """Immediate alert to staff when a player reports a physical issue."""
     categoria = await db.get(Categoria, jugador.categoria_id)
-    variables = [
-        categoria.nombre,
-        f"{jugador.nombre} {jugador.apellido}",
-        zona or "zona no indicada",
-        contexto,
-    ]
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -40,7 +40,7 @@ async def notificar_molestia(
         categoria_id=categoria.id,
         jugador_id=jugador.id,
         template="alerta_molestia",
-        variables=variables,
+        variables=[categoria.nombre, _link(categoria.id, fecha)],
     )
 
 
@@ -52,11 +52,6 @@ async def notificar_inasistencia(
 ) -> None:
     """Immediate alert to staff when a player reports absence."""
     categoria = await db.get(Categoria, jugador.categoria_id)
-    variables = [
-        categoria.nombre,
-        f"{jugador.nombre} {jugador.apellido}",
-        motivo,
-    ]
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -64,7 +59,7 @@ async def notificar_inasistencia(
         categoria_id=categoria.id,
         jugador_id=jugador.id,
         template="alerta_inasistencia",
-        variables=variables,
+        variables=[categoria.nombre, _link(categoria.id, fecha)],
     )
 
 
@@ -112,12 +107,6 @@ async def revisar_tendencia_molestia(
         return
 
     categoria = await db.get(Categoria, jugador.categoria_id)
-    variables = [
-        categoria.nombre,
-        f"{jugador.nombre} {jugador.apellido}",
-        str(ci_count + co_count),
-        zona or "zona no indicada",
-    ]
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -125,7 +114,7 @@ async def revisar_tendencia_molestia(
         categoria_id=categoria.id,
         jugador_id=jugador.id,
         template="alerta_tendencia_molestia",
-        variables=variables,
+        variables=[categoria.nombre, _link(categoria.id, fecha)],
     )
 
 

@@ -45,9 +45,10 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
             )).scalar_one_or_none()
             template = "alerta_bienestar_rojo_tardio" if semaforo_enviado else "alerta_bienestar_rojo"
             tipo = "bienestar_rojo_tardio" if semaforo_enviado else "bienestar_rojo"
-            link = ""
-            if settings.base_url:
-                link = f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
+            link = (
+                f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
+                if settings.base_url else f"/r/{categoria.id}/{fecha.isoformat()}"
+            )
             await enviar_a_staff(
                 db,
                 club_id=categoria.club_id,
@@ -55,15 +56,7 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
                 categoria_id=categoria.id,
                 jugador_id=jugador.id,
                 template=template,
-                variables=[
-                    categoria.nombre,
-                    f"{jugador.nombre} {jugador.apellido}",
-                    str(checkin_hoy.sueno),
-                    str(checkin_hoy.energia),
-                    str(checkin_hoy.animo),
-                    str(checkin_hoy.dolor_pre),
-                    link,
-                ],
+                variables=[categoria.nombre, link],
             )
             logger.info("Alerta bienestar ROJO%s: jugador=%s bienestar=%.2f",
                         " tardío" if semaforo_enviado else "", jugador.id, bienestar)
@@ -93,6 +86,10 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
         return False
 
     categoria = await db.get(Categoria, jugador.categoria_id)
+    link = (
+        f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
+        if settings.base_url else f"/r/{categoria.id}/{fecha.isoformat()}"
+    )
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -100,12 +97,7 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
         categoria_id=categoria.id,
         jugador_id=jugador.id,
         template="alerta_bienestar",
-        variables=[
-            categoria.nombre,
-            f"{jugador.nombre} {jugador.apellido}",
-            f"{metrica} (promedio {valor:.1f})",
-            str(REGISTROS_BIENESTAR),
-        ],
+        variables=[categoria.nombre, link],
     )
     logger.info("Alerta bienestar tendencia: jugador=%s %s=%.1f", jugador.id, metrica, valor)
     return True
@@ -121,6 +113,10 @@ async def revisar_carga(db: AsyncSession, jugador: Jugador, fecha: date) -> bool
     if await _ya_alertado_hoy(db, "carga_alta", jugador.id, fecha):
         return False
 
+    link = (
+        f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
+        if settings.base_url else f"/r/{categoria.id}/{fecha.isoformat()}"
+    )
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -128,12 +124,7 @@ async def revisar_carga(db: AsyncSession, jugador: Jugador, fecha: date) -> bool
         categoria_id=categoria.id,
         jugador_id=jugador.id,
         template="alerta_carga",
-        variables=[
-            categoria.nombre,
-            f"{jugador.nombre} {jugador.apellido}",
-            str(aguda),
-            str(categoria.umbral_alerta_carga),
-        ],
+        variables=[categoria.nombre, link],
     )
     logger.info("Alerta carga alta: jugador=%s carga=%d", jugador.id, aguda)
     return True
