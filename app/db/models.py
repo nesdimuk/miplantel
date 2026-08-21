@@ -90,7 +90,8 @@ class Checkin(Base):
     energia: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)    # 1-7
     animo: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)      # 1-7
     dolor_pre: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)    # 1-7
-    alimentacion: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)       # 1-7
+    alimentacion: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)       # 1-7 (solo nutricionista)
+    estres: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)            # 1-7 Hooper
     hora_inicio_declarada: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)  # HH:MM
     molestia_previa: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     molestia_zona: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

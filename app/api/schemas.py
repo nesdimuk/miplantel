@@ -15,6 +15,7 @@ class CheckinCreate(BaseModel):
     animo: Optional[int] = Field(None, ge=1, le=7)
     dolor_pre: Optional[int] = Field(None, ge=1, le=7)
     alimentacion: Optional[int] = Field(None, ge=1, le=7)
+    estres: Optional[int] = Field(None, ge=1, le=7)
     hora_inicio_declarada: Optional[str] = Field(None, pattern=r"^\d{2}:\d{2}$")
     molestia_previa: Optional[bool] = None
     molestia_zona: Optional[str] = Field(None, max_length=100)
@@ -23,7 +24,7 @@ class CheckinCreate(BaseModel):
     @model_validator(mode="after")
     def validate_asistencia_fields(self) -> CheckinCreate:
         if self.asistencia:
-            missing = [f for f in ("sueno", "energia", "animo", "dolor_pre", "alimentacion") if getattr(self, f) is None]
+            missing = [f for f in ("sueno", "energia", "animo", "dolor_pre", "alimentacion", "estres") if getattr(self, f) is None]
             if missing:
                 raise ValueError(f"Campos requeridos cuando asistencia=True: {missing}")
         else:

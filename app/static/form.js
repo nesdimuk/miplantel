@@ -19,6 +19,7 @@ const ESCALAS = {
   animo:        { titulo: "🙂 Ánimo",          pregunta: "¿Cómo está tu ánimo?",                min: "Muy bajo", max: "Muy bien" },
   dolor_pre:    { titulo: "🩹 Dolor",          pregunta: "¿Tienes dolor muscular hoy?",         min: "Sin dolor", max: "Mucho dolor" },
   alimentacion: { titulo: "🍽️ Alimentación",  pregunta: "Tu comida antes de entrenar fue suficiente", min: "Nada suficiente", max: "Muy suficiente" },
+  estres:       { titulo: "🧠 Estrés",         pregunta: "¿Cómo está tu nivel de estrés hoy?",         min: "Sin estrés",     max: "Muy estresado" },
   fisico_post:  { titulo: "⚡ Explosividad",   pregunta: "¿Qué tan explosivo te sentiste hoy?", min: "Nada explosivo", max: "Muy explosivo" },
   rendimiento:  { titulo: "⭐ Rendimiento",    pregunta: "¿Cómo evalúas tu entrenamiento hoy?", min: "Muy malo", max: "Excelente" },
 };
@@ -253,7 +254,7 @@ const acciones = {
 
   "asiste-si": () => {
     state.respuestas.asistencia = true;
-    startEscalas(["sueno", "energia", "animo", "dolor_pre", "alimentacion"], () => {
+    startEscalas(["sueno", "energia", "animo", "dolor_pre", "alimentacion", "estres"], () => {
       state.molestiaCampo = "molestia_previa";
       state.zonaCampo = "molestia_zona";
       document.getElementById("molestia-titulo").textContent = "¿Tienes alguna molestia física?";

@@ -47,6 +47,7 @@ async def create_checkin(payload: CheckinCreate, db: AsyncSession = Depends(get_
         animo=payload.animo,
         dolor_pre=payload.dolor_pre,
         alimentacion=payload.alimentacion,
+        estres=payload.estres,
         hora_inicio_declarada=payload.hora_inicio_declarada,
         molestia_previa=payload.molestia_previa,
         molestia_zona=payload.molestia_zona,
