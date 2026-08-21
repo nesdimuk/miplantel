@@ -57,9 +57,11 @@ UMBRAL_ROJO_BIENESTAR = 3.5
 
 
 def _bienestar_jugador(c: Checkin) -> Optional[float]:
-    if any(getattr(c, f) is None for f in ("sueno", "energia", "animo", "dolor_pre")):
+    # Índice Hooper: sueño + energía + (8-dolor) + (8-estrés) → rango 1-7, mayor=mejor
+    # Ánimo se registra pero no entra al score validado
+    if any(getattr(c, f) is None for f in ("sueno", "energia", "dolor_pre", "estres")):
         return None
-    return (c.sueno + c.energia + c.animo + (8 - c.dolor_pre)) / 4
+    return (c.sueno + c.energia + (8 - c.dolor_pre) + (8 - c.estres)) / 4
 
 
 async def calcular_semaforo(db: AsyncSession, categoria_id: int, fecha: date) -> Optional[dict]:

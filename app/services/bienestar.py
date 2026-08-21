@@ -28,11 +28,11 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
 
     if checkin_hoy and all(
         getattr(checkin_hoy, f) is not None
-        for f in ("sueno", "energia", "animo", "dolor_pre")
+        for f in ("sueno", "energia", "dolor_pre", "estres")
     ):
         bienestar = (
-            checkin_hoy.sueno + checkin_hoy.energia + checkin_hoy.animo
-            + (8 - checkin_hoy.dolor_pre)
+            checkin_hoy.sueno + checkin_hoy.energia
+            + (8 - checkin_hoy.dolor_pre) + (8 - checkin_hoy.estres)
         ) / 4
         if bienestar < UMBRAL_ROJO and not await _ya_alertado_hoy(db, "bienestar_rojo", jugador.id, fecha):
             categoria = await db.get(Categoria, jugador.categoria_id)
