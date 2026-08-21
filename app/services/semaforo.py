@@ -7,6 +7,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.models import Categoria, Checkin, Jugador, SesionDia
 from app.services.alertas import enviar_a_staff
 
@@ -130,6 +131,9 @@ async def enviar_semaforo(
         bloque = "💪 Todo el grupo viene bien hoy"
 
     total_str = str(total_activos) if total_activos else "?"
+    link = ""
+    if settings.base_url:
+        link = f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
@@ -142,6 +146,7 @@ async def enviar_semaforo(
             bloque,
             str(stats["checkins"]),
             total_str,
+            link,
         ],
     )
     logger.info("Semáforo enviado: %s %s — %d rojos", categoria.nombre, fecha, len(stats["rojos"]))

@@ -1,0 +1,25 @@
+{
+  "name": "Mi Plantel",
+  "short_name": "Mi Plantel",
+  "description": "Monitoreo de bienestar y carga deportiva",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D0D0D",
+  "theme_color": "#C9A227",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

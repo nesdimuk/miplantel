@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>{{ club_nombre }} · {{ categoria_nombre }}</title>
   <link rel="stylesheet" href="/static/form.css">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#C9A227">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mi Plantel">
 </head>
 <body>
   <header class="topbar">
@@ -151,5 +157,10 @@
 
   <script id="form-data" type="application/json">{{ form_data | tojson }}</script>
   <script src="/static/form.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/static/sw.js").catch(() => {});
+    }
+  </script>
 </body>
 </html>

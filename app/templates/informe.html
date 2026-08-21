@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ categoria.nombre }} · {{ fecha.strftime('%d/%m') }}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/static/informe.css">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#C9A227">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-club">{{ club.nombre }}</span>
+    <span class="topbar-cat">{{ categoria.nombre }}</span>
+  </div>
+  <span class="topbar-fecha">{{ fecha.strftime('%A %d/%m').capitalize() }}</span>
+</header>
+
+<div class="wrap">
+
+  {# ── STATS ── #}
+  <div class="stats">
+    <div>
+      <div class="stats-num">{{ registros|length }}<span style="font-size:.9rem;font-weight:400;color:var(--muted)"> / {{ total_activos }}</span></div>
+      <div class="stats-label">check-ins recibidos</div>
+    </div>
+    <div class="stats-dots">
+      {% if conteo.rojo %}    <div class="dot dot-rojo">{{ conteo.rojo }}</div>{% endif %}
+      {% if conteo.naranja %} <div class="dot dot-naranja">{{ conteo.naranja }}</div>{% endif %}
+      {% if conteo.amarillo %}<div class="dot dot-amarillo">{{ conteo.amarillo }}</div>{% endif %}
+      {% if conteo.verde %}   <div class="dot dot-verde">{{ conteo.verde }}</div>{% endif %}
+    </div>
+  </div>
+
+  {# ── SPARKLINE ASISTENCIA 7D ── #}
+  {% set max_val = asistencia_7d | max if asistencia_7d | max > 0 else 1 %}
+  <div class="sparkline-wrap">
+    <div class="sparkline-label">Asistencia últimos 7 días</div>
+    <div class="sparkline">
+      {% for val in asistencia_7d %}
+      <div class="spark-bar {% if loop.last %}today{% endif %}"
+           style="height: {{ [[((val / max_val * 34)|round)|int, 3]|max, 34]|min }}px"
+           title="{{ dias_7_labels[loop.index0] }}: {{ val }}"></div>
+      {% endfor %}
+    </div>
+    <div style="display:flex;gap:3px;margin-top:3px;">
+      {% for lbl in dias_7_labels %}
+      <div class="spark-day" style="flex:1">{{ lbl }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ── PENDIENTES ── #}
+  {% if pendientes %}
+  <h2 class="section-title">⏳ Sin registrar ({{ pendientes|length }})</h2>
+  <div class="pendientes-box">
+    <ul class="pendientes-list">
+      {% for p in pendientes %}<li>{{ p.nombre }}</li>{% endfor %}
+    </ul>
+    <button class="btn-copy" id="btn-copy"
+            data-msg="⚽ {{ categoria.nombre }} — check-in de hoy&#10;&#10;Chicos, faltan por registrar:&#10;{{ pendientes|map(attribute='nombre')|join('&#10;') }}&#10;&#10;Háganlo antes del entrenamiento 🙏&#10;{{ request.url }}">
+      📋 Copiar recordatorio para el grupo
+    </button>
+  </div>
+  {% endif %}
+
+  {# ── JUGADORES ── #}
+  <h2 class="section-title">
+    {% if registros %}📊 Bienestar del grupo{% else %}Sin check-ins por ahora{% endif %}
+  </h2>
+
+  {% if registros %}
+  {% for r in registros %}
+  <div class="card">
+    <div class="card-bar {{ r.estado }}"></div>
+    <div class="card-body">
+      <div class="card-top">
+        <span class="card-nombre">{{ r.nombre }}</span>
+        <span class="card-score {{ r.estado }}">
+          {% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}
+        </span>
+      </div>
+      <div class="card-chips">
+        {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
+        {% if r.energia is not none %}<span class="chip">⚡ {{ r.energia }}</span>{% endif %}
+        {% if r.estres  is not none %}<span class="chip">🧠 {{ r.estres }}</span>{% endif %}
+        {% if r.dolor   is not none %}<span class="chip">🩹 {{ r.dolor }}</span>{% endif %}
+        {% if r.animo   is not none %}<span class="chip">🙂 {{ r.animo }}</span>{% endif %}
+        {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
+      </div>
+      {% if r.carga %}
+      <div class="card-carga">Carga: <strong>{{ r.carga }}</strong> (RPE {{ r.rpe }} × {{ r.duracion }} min)</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="empty">Aún no hay check-ins para hoy.</p>
+  {% endif %}
+
+  {# ── INASISTENCIAS ── #}
+  {% if inasistencias %}
+  <details class="inasistencias">
+    <summary>Inasistencias ({{ inasistencias|length }})</summary>
+    {% for i in inasistencias %}
+    <div class="inasist-row">
+      <div class="inasist-nombre">{{ i.nombre }}</div>
+      <div class="inasist-motivo">{{ i.motivo }}</div>
+    </div>
+    {% endfor %}
+  </details>
+  {% endif %}
+
+</div>{# /wrap #}
+
+<script>
+// ── Enumerate filter ──────────────────────────────────────────────────────────
+// (Jinja2 doesn't have enumerate; we use a loop index instead in the template)
+
+// ── Copy button ───────────────────────────────────────────────────────────────
+const btn = document.getElementById("btn-copy");
+if (btn) {
+  btn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(btn.dataset.msg);
+      btn.textContent = "✅ ¡Copiado!";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.innerHTML = "📋 Copiar recordatorio para el grupo";
+        btn.classList.remove("copied");
+      }, 2500);
+    } catch {
+      // Fallback para Safari
+      const ta = document.createElement("textarea");
+      ta.value = btn.dataset.msg;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      btn.textContent = "✅ ¡Copiado!";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.innerHTML = "📋 Copiar recordatorio para el grupo";
+        btn.classList.remove("copied");
+      }, 2500);
+    }
+  });
+}
+
+// ── Service Worker ────────────────────────────────────────────────────────────
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/static/sw.js").catch(() => {});
+}
+</script>
+
+</body>
+</html>

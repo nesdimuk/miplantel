@@ -31,7 +31,8 @@ TEMPLATES: dict[str, str] = {
     "semaforo_checkin": (
         "⚠️ *Pre-entrenamiento — {{1}}*\n\n"
         "{{2}}\n\n"
-        "✅ {{3}} de {{4}} jugadores registraron check-in"
+        "✅ {{3}} de {{4}} jugadores registraron check-in\n"
+        "{{5}}"
     ),
     "resumen_diario": (
         "📊 *Resumen {{1}}* — {{2}}\n"
@@ -49,12 +50,14 @@ TEMPLATES: dict[str, str] = {
     "alerta_bienestar_rojo": (
         "🔴 *Bienestar bajo hoy* — {{1}}\n"
         "{{2}} viene en rojo:\n"
-        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}"
+        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}\n"
+        "{{7}}"
     ),
     "alerta_bienestar_rojo_tardio": (
         "⚠️ *Check-in tardío en rojo* — {{1}}\n"
         "{{2}} registró después del reporte y viene en rojo:\n"
-        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}"
+        "Sueño {{3}} · Energía {{4}} · Ánimo {{5}} · Dolor {{6}}\n"
+        "{{7}}"
     ),
     "recordatorio_checkin": (
         "🔔 *Recordatorio* — {{1}}\n"

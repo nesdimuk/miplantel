@@ -4,6 +4,7 @@ from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.models import AlertaLog, Categoria, Checkin, Jugador, SesionDia
 from app.services import carga as carga_svc
 from app.services.alertas import enviar_a_staff
@@ -44,6 +45,9 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
             )).scalar_one_or_none()
             template = "alerta_bienestar_rojo_tardio" if semaforo_enviado else "alerta_bienestar_rojo"
             tipo = "bienestar_rojo_tardio" if semaforo_enviado else "bienestar_rojo"
+            link = ""
+            if settings.base_url:
+                link = f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
             await enviar_a_staff(
                 db,
                 club_id=categoria.club_id,
@@ -58,6 +62,7 @@ async def revisar_bienestar(db: AsyncSession, jugador: Jugador, fecha: date) -> 
                     str(checkin_hoy.energia),
                     str(checkin_hoy.animo),
                     str(checkin_hoy.dolor_pre),
+                    link,
                 ],
             )
             logger.info("Alerta bienestar ROJO%s: jugador=%s bienestar=%.2f",
