@@ -2,6 +2,7 @@
   "name": "Mi Plantel",
   "short_name": "Mi Plantel",
   "description": "Monitoreo de bienestar y carga deportiva",
+  "id": "https://miplantel.app/",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
