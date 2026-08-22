@@ -138,8 +138,8 @@ async def _schedule_post_training(db: AsyncSession, categoria_id: int, fecha) ->
     )
 
     fecha_iso = fecha.isoformat() if not isinstance(fecha, str) else fecha
-    run_resumen = now + timedelta(minutes=2)
-    run_dashboard = now + timedelta(minutes=4)
+    run_resumen = now + timedelta(hours=1)
+    run_dashboard = now + timedelta(hours=2)
 
     scheduler.add_job(
         _enviar_resumen_post_job,
