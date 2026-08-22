@@ -350,3 +350,41 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
 .grupo-details[open] .ver-bienestar-btn {
   opacity: .5;
 }
+
+/* ── LEYENDA BIENESTAR ── */
+.leyenda-bienestar {
+  padding: .7rem 1rem .5rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+.leyenda-titulo {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: .4rem;
+}
+.leyenda-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+}
+.leyenda-item {
+  font-size: 11.5px;
+  border-radius: 4px;
+  padding: .15rem .45rem;
+}
+.leyenda-item.activo {
+  background: rgba(201,162,39,.13);
+  color: var(--accent);
+  font-weight: 600;
+}
+.leyenda-item.inactivo {
+  background: var(--border);
+  color: var(--muted);
+}
+.leyenda-item.inactivo em {
+  font-style: normal;
+  font-size: 10.5px;
+}

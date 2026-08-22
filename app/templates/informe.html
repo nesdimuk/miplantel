@@ -54,6 +54,17 @@
         <span class="ver-bienestar-btn">Ver bienestar ▸</span>
       </div>
     </summary>
+    <div class="leyenda-bienestar">
+      <div class="leyenda-titulo">Índice Hooper (1–7, mayor = mejor)</div>
+      <div class="leyenda-items">
+        <span class="leyenda-item activo">😴 Sueño</span>
+        <span class="leyenda-item activo">💪 Energía</span>
+        <span class="leyenda-item activo">🧠 Estrés</span>
+        <span class="leyenda-item activo">🩹 Dolor</span>
+        <span class="leyenda-item inactivo">🙂 Ánimo <em>(no entra al índice)</em></span>
+      </div>
+    </div>
+
     {% for r in registros %}
     <div class="card">
       <div class="card-bar {{ r.estado }}"></div>
