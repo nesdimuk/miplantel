@@ -59,8 +59,8 @@
       <div class="leyenda-items">
         <span class="leyenda-item activo">😴 Sueño</span>
         <span class="leyenda-item activo">💪 Energía</span>
-        <span class="leyenda-item activo">🧠 Estrés</span>
-        <span class="leyenda-item activo">🩹 Dolor</span>
+        <span class="leyenda-item activo">🧠 Estrés <em>(invertido)</em></span>
+        <span class="leyenda-item activo">🩹 Dolor <em>(invertido)</em></span>
         <span class="leyenda-item inactivo">🙂 Ánimo <em>(no entra al índice)</em></span>
       </div>
     </div>
@@ -78,8 +78,8 @@
         <div class="card-chips">
           {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
           {% if r.energia is not none %}<span class="chip">💪 {{ r.energia }}</span>{% endif %}
-          {% if r.estres  is not none %}<span class="chip">🧠 {{ r.estres }}</span>{% endif %}
-          {% if r.dolor   is not none %}<span class="chip">🩹 {{ r.dolor }}</span>{% endif %}
+          {% if r.estres  is not none %}<span class="chip {% if (8 - r.estres) <= 3 %}chip-bajo{% endif %}">🧠 {{ 8 - r.estres }}</span>{% endif %}
+          {% if r.dolor   is not none %}<span class="chip {% if (8 - r.dolor) <= 3 %}chip-bajo{% endif %}">🩹 {{ 8 - r.dolor }}</span>{% endif %}
           {% if r.animo   is not none %}<span class="chip">🙂 {{ r.animo }}</span>{% endif %}
           {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
           {% if r.molestia_previa %}<span class="chip chip-molestia">🩹 {{ r.molestia_severidad or 'molestia' }}{% if r.molestia_zona %} — {{ r.molestia_zona }}{% endif %}</span>{% endif %}

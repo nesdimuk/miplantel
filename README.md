@@ -71,7 +71,7 @@ app/
 
 - `dias_entrenamiento`: 0=lunes … 6=domingo
 - Carga = RPE × duración de la sesión de la categoría (el jugador NO elige duración)
-- Semáforo: score = (sueño + energía + ánimo + (8 − dolor)) / 4
+- Semáforo (índice Hooper): score = (sueño + energía + (8−estrés) + (8−dolor)) / 4, rango 1-7. Estrés y dolor se invierten porque el jugador declara cuánto tiene (1=poco, 7=mucho). Ánimo se registra pero NO entra al cálculo.
 - Claims atómicos (semáforo/resumen/recordatorio 1 vez al día) vía UPDATE…RETURNING
 - Passwords de clubes: sha256 hex. Cookie 12 h.
 - Los `.app` fuerzan HTTPS — nunca probar producción por http

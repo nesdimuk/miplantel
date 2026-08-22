@@ -388,3 +388,6 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
   font-style: normal;
   font-size: 10.5px;
 }
+
+/* chip valor bajo (estrés/dolor efectivo ≤3) */
+.chip-bajo { background: rgba(229,62,62,.15); color: #fc8181; font-weight: 700; }
