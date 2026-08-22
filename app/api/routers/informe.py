@@ -148,6 +148,10 @@ async def informe_diario(
 
     dias_7 = [(hace_7 + timedelta(days=i)).isoformat() for i in range(7)]
 
+    from app.config import settings
+    base = settings.base_url.rstrip("/") if settings.base_url else ""
+    checkin_url = f"{base}/f/{club.slug}/{categoria.nombre}"
+
     return templates.TemplateResponse("informe.html", {
         "request": request,
         "categoria": categoria,
@@ -163,4 +167,5 @@ async def informe_diario(
         "conteo": conteo,
         "asistencia_7d": [asistencia_7d.get(d, 0) for d in dias_7],
         "dias_7_labels": [d[5:] for d in dias_7],  # MM-DD
+        "checkin_url": checkin_url,
     })
