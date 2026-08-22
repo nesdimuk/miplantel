@@ -1,15 +1,21 @@
+:root {
+  --acento: #1565c0;
+  --acento-dim: rgba(21,101,192,.12);
+  --text-topbar: #ffffff;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f5f7fa;
   color: #1a1a1a;
   font-size: 15px;
 }
 
 .topnav {
-  background: #0d47a1;
-  color: #fff;
+  background: var(--acento);
+  color: var(--text-topbar);
   padding: 12px 24px;
   display: flex;
   align-items: center;
@@ -17,8 +23,8 @@ body {
   flex-wrap: wrap;
 }
 .topnav .brand { font-weight: 800; margin-right: 8px; }
-.topnav a { color: #cfe3ff; text-decoration: none; font-size: 0.95rem; }
-.topnav a:hover, .topnav a.active { color: #fff; font-weight: 600; }
+.topnav a { color: var(--text-topbar); opacity: .75; text-decoration: none; font-size: 0.95rem; }
+.topnav a:hover, .topnav a.active { opacity: 1; font-weight: 600; }
 .topnav .right { margin-left: auto; }
 
 main { max-width: 1080px; margin: 0 auto; padding: 24px 20px 60px; }
