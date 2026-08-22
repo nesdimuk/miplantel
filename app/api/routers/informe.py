@@ -185,6 +185,40 @@ async def informe_diario(
     })
 
 
+@router.get("/api/sin-checkout/{categoria_id}/{fecha_str}")
+async def sin_checkout_live(
+    categoria_id: int,
+    fecha_str: str,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        fecha = date.fromisoformat(fecha_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Fecha inválida")
+
+    jugadores = {j.id: j for j in (await db.execute(
+        select(Jugador).where(Jugador.categoria_id == categoria_id, Jugador.activo == True)  # noqa: E712
+    )).scalars().all()}
+
+    asistentes_ids = {c.jugador_id for c in (await db.execute(
+        select(Checkin).join(Jugador, Checkin.jugador_id == Jugador.id)
+        .where(Jugador.categoria_id == categoria_id, Checkin.fecha == fecha, Checkin.asistencia == True)  # noqa: E712
+    )).scalars().all()}
+
+    checkout_ids = {co.jugador_id for co in (await db.execute(
+        select(Checkout).join(Jugador, Checkout.jugador_id == Jugador.id)
+        .where(Jugador.categoria_id == categoria_id, Checkout.fecha == fecha)
+    )).scalars().all()}
+
+    pendientes = [
+        f"{jugadores[jid].nombre} {jugadores[jid].apellido}"
+        for jid in asistentes_ids
+        if jid not in checkout_ids and jid in jugadores
+    ]
+    pendientes.sort()
+    return {"pendientes": pendientes}
+
+
 @router.get("/r/{categoria_id}/{fecha_str}/post", response_class=HTMLResponse)
 async def informe_post(
     request: Request,
