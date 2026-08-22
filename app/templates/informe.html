@@ -133,14 +133,14 @@
       {% for p in pendientes %}<li>{{ p.nombre }}</li>{% endfor %}
     </ul>
     <div class="btn-copy-group">
-      <button class="btn-copy" id="btn-copy-nombres"
-              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Ya registraron check-in:&#10;{{ registros|map(attribute='nombre')|join(', ') }}&#10;&#10;¡Súmate! Regístrate aquí 👉 {{ checkin_url }}">
-        👥 Copiar con nombres
-      </button>
-      <button class="btn-copy" id="btn-copy-anonimo"
-              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;{{ registros|length }} jugadores ya hicieron su check-in.&#10;&#10;¡Súmate! Regístrate aquí 👉 {{ checkin_url }}">
-        🕵️ Copiar anónimo
-      </button>
+      <a class="btn-wa" target="_blank"
+         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\nYa registraron check-in:\n' ~ registros|map(attribute='nombre')|join(', ') ~ '\n\n¡Súmate! Regístrate aquí 👉 ' ~ checkin_url)|urlencode }}">
+        📲 Recordatorio con nombres
+      </a>
+      <a class="btn-wa btn-wa-sec" target="_blank"
+         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\n' ~ registros|length|string ~ ' jugadores ya hicieron su check-in.\n\n¡Súmate! Regístrate aquí 👉 ' ~ checkin_url)|urlencode }}">
+        🕵️ Recordatorio anónimo
+      </a>
     </div>
   </div>
   {% endif %}
@@ -158,14 +158,14 @@
         {% for p in sin_checkout %}<li>{{ p.nombre }}</li>{% endfor %}
       </ul>
       <div class="btn-copy-group">
-        <button class="btn-copy" id="btn-sinco-nombres"
-                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Ya hicieron check-out:&#10;{{ con_checkout|map(attribute='nombre')|join(', ') }}&#10;&#10;¡Súmate! Regístralo aquí 👉 {{ checkin_url }}">
-          👥 Copiar con nombres
-        </button>
-        <button class="btn-copy" id="btn-sinco-anonimo"
-                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;{{ con_checkout|length }} jugadores ya hicieron su check-out.&#10;&#10;¡Súmate! Regístralo aquí 👉 {{ checkin_url }}">
-          🕵️ Copiar anónimo
-        </button>
+        <a class="btn-wa" target="_blank"
+           href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\nYa hicieron check-out:\n' ~ con_checkout|map(attribute='nombre')|join(', ') ~ '\n\n¡Súmate! Regístralo aquí 👉 ' ~ checkin_url)|urlencode }}">
+          📲 Recordatorio con nombres
+        </a>
+        <a class="btn-wa btn-wa-sec" target="_blank"
+           href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\n' ~ con_checkout|length|string ~ ' jugadores ya hicieron su check-out.\n\n¡Súmate! Regístralo aquí 👉 ' ~ checkin_url)|urlencode }}">
+          🕵️ Recordatorio anónimo
+        </a>
       </div>
     </div>
   </details>
@@ -200,29 +200,6 @@
 </div>{# /wrap #}
 
 <script>
-// ── Copy buttons ──────────────────────────────────────────────────────────────
-async function copyMsg(btn, originalHtml) {
-  const msg = btn.dataset.msg.replace(/&#10;/g, "\n");
-  try {
-    await navigator.clipboard.writeText(msg);
-  } catch {
-    const ta = document.createElement("textarea");
-    ta.value = msg;
-    ta.style.cssText = "position:fixed;opacity:0";
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    document.execCommand("copy");
-    ta.remove();
-  }
-  btn.textContent = "✅ ¡Copiado!";
-  btn.classList.add("copied");
-  setTimeout(() => { btn.innerHTML = originalHtml; btn.classList.remove("copied"); }, 2500);
-}
-
-document.querySelectorAll(".btn-copy").forEach(btn => {
-  const originalHtml = btn.innerHTML;
-  btn.addEventListener("click", () => copyMsg(btn, originalHtml));
-});
 
 // ── Aviso bienestar ──────────────────────────────────────────────────────────
 const avisoKey = "visto_bienestar_{{ categoria_id }}_{{ fecha_str }}";

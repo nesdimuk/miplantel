@@ -214,24 +214,23 @@ h2.section-title {
   flex-wrap: wrap;
 }
 
-.btn-copy {
+.btn-wa {
   flex: 1;
   min-width: 130px;
-  background: var(--gold);
-  color: #000;
+  background: #25D366;
+  color: #fff;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: .95rem;
   font-weight: 700;
   letter-spacing: .5px;
   padding: .7rem 1rem;
-  border: none;
   border-radius: 7px;
-  cursor: pointer;
+  text-decoration: none;
   transition: opacity .15s;
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.btn-copy:active { opacity: .8; }
-.btn-copy.copied { background: var(--verde); color: #fff; }
+.btn-wa-sec { background: #128C7E; }
+.btn-wa:active { opacity: .8; }
 
 /* ── INASISTENCIAS COLLAPSE ── */
 details.inasistencias {
