@@ -83,6 +83,49 @@
   {% endfor %}
   {% endif %}
 
+  {# ── FICHAS INDIVIDUALES ── #}
+  {% if fichas %}
+  <div class="dia-seccion-titulo">JUGADORES ({{ fichas|length }})</div>
+  {% for f in fichas %}
+  <details class="ficha-jugador">
+    <summary class="ficha-summary">
+      <div class="ficha-left">
+        <span class="ficha-dot dot-{{ f.estado }}"></span>
+        <span class="ficha-nombre">{{ f.nombre }}</span>
+      </div>
+      <div class="ficha-right">
+        {% if f.bienestar is not none %}
+        <span class="card-score {{ f.estado }}" style="font-size:1rem;padding:1px 6px">{{ f.bienestar }}</span>
+        {% else %}
+        <span class="card-score sin_datos" style="font-size:1rem;padding:1px 6px">—</span>
+        {% endif %}
+        {% if f.molestia_previa or f.molestia_nueva %}<span style="font-size:13px">🩹</span>{% endif %}
+      </div>
+    </summary>
+    <div class="ficha-body">
+      <div class="card-chips" style="margin-bottom:.5rem">
+        {% if f.sueno     is not none %}<span class="chip">😴 {{ f.sueno }}</span>{% endif %}
+        {% if f.energia   is not none %}<span class="chip">💪 {{ f.energia }}</span>{% endif %}
+        {% if f.estres_ef is not none %}<span class="chip {% if f.estres_ef <= 3 %}chip-bajo{% endif %}">🧠 {{ f.estres_ef }}</span>{% endif %}
+        {% if f.dolor_ef  is not none %}<span class="chip {% if f.dolor_ef <= 3 %}chip-bajo{% endif %}">🩹 {{ f.dolor_ef }}</span>{% endif %}
+        {% if f.animo     is not none %}<span class="chip">🙂 {{ f.animo }}</span>{% endif %}
+      </div>
+      {% if f.rpe is not none %}
+      <div class="inasist-motivo">RPE {{ f.rpe }} · Carga {{ f.carga or '—' }}</div>
+      {% else %}
+      <div class="inasist-motivo" style="color:var(--muted)">Sin check-out registrado</div>
+      {% endif %}
+      {% if f.molestia_previa %}
+      <div class="inasist-motivo" style="color:#fc8181;margin-top:.25rem">🩹 Pre: {{ f.molestia_sev_pre or '—' }} — {{ f.molestia_zona_pre or 'zona no indicada' }}</div>
+      {% endif %}
+      {% if f.molestia_nueva %}
+      <div class="inasist-motivo" style="color:#fc8181;margin-top:.25rem">🩹 Post: {{ f.molestia_sev_post or '—' }} — {{ f.molestia_zona_post or 'zona no indicada' }}</div>
+      {% endif %}
+    </div>
+  </details>
+  {% endfor %}
+  {% endif %}
+
   {# ── INASISTENCIAS ── #}
   {% if inasistentes %}
   <details class="inasistencias">

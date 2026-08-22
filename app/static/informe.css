@@ -456,3 +456,38 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
 .dia-card-naranja .dia-num { color: var(--naranja); }
 .dia-card-amarillo .dia-num { color: var(--amarillo); }
 .dia-card-verde   .dia-num { color: var(--verde); }
+
+/* ── FICHAS INDIVIDUALES (cierre día) ── */
+.ficha-jugador {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: .4rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.ficha-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .65rem .9rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.ficha-summary::-webkit-details-marker { display: none; }
+.ficha-left { display: flex; align-items: center; gap: .55rem; }
+.ficha-right { display: flex; align-items: center; gap: .4rem; }
+.ficha-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.ficha-dot.dot-rojo     { background: var(--rojo); }
+.ficha-dot.dot-naranja  { background: var(--naranja); }
+.ficha-dot.dot-amarillo { background: var(--amarillo); }
+.ficha-dot.dot-verde    { background: var(--verde); }
+.ficha-dot.dot-sin_datos{ background: var(--gris); }
+.ficha-nombre { font-size: 14px; font-weight: 600; }
+.ficha-body {
+  padding: .5rem .9rem .75rem;
+  border-top: 1px solid var(--border);
+}

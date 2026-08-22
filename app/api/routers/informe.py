@@ -323,6 +323,7 @@ async def informe_dia(
 
     bienestar_promedio = round(mean(scores), 1) if scores else None
 
+    checkout_por_jugador = {co.jugador_id: co for co in co_rows}
     molestias_post = []
     rpes = []
     cargas = []
@@ -341,6 +342,33 @@ async def informe_dia(
                 "momento": "post-entreno",
             })
 
+    # Ficha individual por jugador (para expandible)
+    _ORDEN_DIA = {"rojo": 0, "naranja": 1, "amarillo": 2, "verde": 3, "sin_datos": 4}
+    fichas = []
+    for ci, jug in asistentes:
+        b = _bienestar(ci)
+        est = _estado(b)
+        co = checkout_por_jugador.get(jug.id)
+        fichas.append({
+            "nombre": f"{jug.nombre} {jug.apellido}",
+            "estado": est,
+            "bienestar": round(b, 1) if b is not None else None,
+            "sueno": ci.sueno,
+            "energia": ci.energia,
+            "estres_ef": (8 - ci.estres) if ci.estres is not None else None,
+            "dolor_ef": (8 - ci.dolor_pre) if ci.dolor_pre is not None else None,
+            "animo": ci.animo,
+            "molestia_previa": ci.molestia_previa,
+            "molestia_zona_pre": ci.molestia_zona,
+            "molestia_sev_pre": ci.molestia_severidad,
+            "rpe": co.rpe if co else None,
+            "carga": co.carga if co else None,
+            "molestia_nueva": co.molestia_nueva if co else None,
+            "molestia_zona_post": co.molestia_zona if co else None,
+            "molestia_sev_post": co.molestia_severidad if co else None,
+        })
+    fichas.sort(key=lambda f: (_ORDEN_DIA[f["estado"]], f["bienestar"] or 99))
+
     return templates.TemplateResponse("informe_dia.html", {
         "request": request,
         "categoria": categoria,
@@ -357,4 +385,5 @@ async def informe_dia(
         "carga_total": sum(cargas) if cargas else None,
         "molestias": molestias_pre + molestias_post,
         "inasistentes": [{"nombre": f"{j.nombre} {j.apellido}", "motivo": c.motivo_inasistencia or "—"} for c, j in inasistentes],
+        "fichas": fichas,
     })
