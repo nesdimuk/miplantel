@@ -96,7 +96,7 @@
 <script>
 async function actualizarLista() {
   try {
-    const res = await fetch('/api/sin-checkout/{{ categoria.id }}/{{ fecha_str }}');
+    const res = await fetch('/api/sin-checkout/{{ categoria.id }}/{{ fecha.isoformat() }}');
     const data = await res.json();
     const lista = document.getElementById('lista-sin-checkout');
     const titulo = document.getElementById('titulo-sin-checkout');
