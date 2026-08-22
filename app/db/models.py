@@ -20,6 +20,8 @@ class Club(Base):
     password_admin: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)      # sha256 hex
     password_dashboard: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)  # sha256 hex
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
+    color_primario: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)   # hex #RRGGBB
+    color_secundario: Mapped[Optional[str]] = mapped_column(String(7), nullable=True) # hex #RRGGBB
 
     categorias: Mapped[list[Categoria]] = relationship(back_populates="club")
     staff: Mapped[list[Staff]] = relationship(back_populates="club")
