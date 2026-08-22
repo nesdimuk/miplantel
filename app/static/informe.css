@@ -208,8 +208,15 @@ h2.section-title {
 .pendientes-list li { padding: 3px 0; font-size: 14px; color: var(--text); }
 .pendientes-list li::before { content: "•  "; color: var(--gold); font-weight: 700; }
 
+.btn-copy-group {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
 .btn-copy {
-  width: 100%;
+  flex: 1;
+  min-width: 130px;
   background: var(--gold);
   color: #000;
   font-family: 'Barlow Condensed', sans-serif;

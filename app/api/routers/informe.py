@@ -106,6 +106,23 @@ async def informe_diario(
 
     pendientes = [{"nombre": f"{j.nombre} {j.apellido}"} for j in sin_registro]
 
+    # Checkout summary: who checked in but didn't checkout yet
+    sin_checkout = [
+        {"nombre": f"{jug.nombre} {jug.apellido}"}
+        for jugador_id, (ci, jug) in asistentes.items()
+        if jugador_id not in checkout_por_jugador
+    ]
+    con_checkout = [
+        {
+            "nombre": f"{jug.nombre} {jug.apellido}",
+            "rpe": co.rpe,
+            "duracion": co.duracion_min,
+            "carga": co.carga,
+        }
+        for jugador_id, (ci, jug) in asistentes.items()
+        if (co := checkout_por_jugador.get(jugador_id))
+    ]
+
     # Conteo por estado
     conteo = {"verde": 0, "amarillo": 0, "naranja": 0, "rojo": 0, "sin_datos": 0}
     for r in registros:
@@ -140,6 +157,8 @@ async def informe_diario(
         "registros": registros,
         "pendientes": pendientes,
         "inasistencias": inasistencias,
+        "sin_checkout": sin_checkout,
+        "con_checkout": con_checkout,
         "total_activos": len(jugadores),
         "conteo": conteo,
         "asistencia_7d": [asistencia_7d.get(d, 0) for d in dias_7],

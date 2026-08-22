@@ -1,13 +1,16 @@
 import logging
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.engine import get_db
 from app.db.models import Checkout, Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckoutCreate, CheckoutResponse
 from app.services import alertas, bienestar
+from app.services.notificaciones_post import _enviar_resumen_post_job, _enviar_dashboard_dia_job
+from app.scheduler.jobs import scheduler
 
 router = APIRouter()
 logger = logging.getLogger("api.checkout")
@@ -79,7 +82,7 @@ async def create_checkout(payload: CheckoutCreate, db: AsyncSession = Depends(ge
     db.add(checkout)
     await db.flush()
 
-    await _upsert_sesion_checkout(db, jugador.categoria_id, payload.fecha)
+    nuevo_total_co = await _upsert_sesion_checkout(db, jugador.categoria_id, payload.fecha)
 
     # Immediate staff alerts — must never break the player's registration
     try:
@@ -88,6 +91,10 @@ async def create_checkout(payload: CheckoutCreate, db: AsyncSession = Depends(ge
                 await alertas.notificar_molestia(db, jugador, payload.molestia_zona, "check-out", payload.fecha)
             await alertas.revisar_tendencia_molestia(db, jugador, payload.molestia_zona, payload.fecha)
         await bienestar.revisar_carga(db, jugador, payload.fecha)
+
+        # Trigger 4+5: 3rd checkout → schedule resumen_post (+1h) and dashboard (+3h)
+        if nuevo_total_co == 3:
+            await _schedule_post_training(db, jugador.categoria_id, payload.fecha)
     except Exception:
         logger.exception("Error enviando alertas de check-out (jugador_id=%s)", jugador.id)
 
@@ -111,7 +118,8 @@ def _calcular_duracion(hora_inicio: str, hora_fin: str) -> int:
     return max(hf - hi, 1)
 
 
-async def _upsert_sesion_checkout(db: AsyncSession, categoria_id: int, fecha) -> None:
+async def _upsert_sesion_checkout(db: AsyncSession, categoria_id: int, fecha) -> int:
+    """Atomically increment total_checkouts and return the new count."""
     stmt = pg_insert(SesionDia).values(
         categoria_id=categoria_id,
         fecha=fecha,
@@ -119,5 +127,47 @@ async def _upsert_sesion_checkout(db: AsyncSession, categoria_id: int, fecha) ->
     ).on_conflict_do_update(
         constraint="mp_uq_sesion_categoria_fecha",
         set_={"total_checkouts": SesionDia.total_checkouts + 1},
+    ).returning(SesionDia.total_checkouts)
+    result = await db.execute(stmt)
+    return result.scalar_one()
+
+
+async def _schedule_post_training(db: AsyncSession, categoria_id: int, fecha) -> None:
+    """Record tercer_checkout_at and schedule post-training notification jobs."""
+    now = datetime.now(timezone.utc)
+    await db.execute(
+        update(SesionDia)
+        .where(
+            SesionDia.categoria_id == categoria_id,
+            SesionDia.fecha == fecha,
+            SesionDia.tercer_checkout_at.is_(None),
+        )
+        .values(tercer_checkout_at=now)
     )
-    await db.execute(stmt)
+
+    fecha_iso = fecha.isoformat() if not isinstance(fecha, str) else fecha
+    run_resumen = now + timedelta(hours=1)
+    run_dashboard = now + timedelta(hours=3)
+
+    scheduler.add_job(
+        _enviar_resumen_post_job,
+        trigger="date",
+        run_date=run_resumen,
+        args=[categoria_id, fecha_iso],
+        id=f"resumen_post_{categoria_id}_{fecha_iso}",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+    scheduler.add_job(
+        _enviar_dashboard_dia_job,
+        trigger="date",
+        run_date=run_dashboard,
+        args=[categoria_id, fecha_iso],
+        id=f"dashboard_dia_{categoria_id}_{fecha_iso}",
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+    logger.info(
+        "Post-training jobs scheduled for categoria_id=%s fecha=%s (+1h resumen, +3h dashboard)",
+        categoria_id, fecha_iso,
+    )

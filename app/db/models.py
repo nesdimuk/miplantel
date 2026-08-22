@@ -134,6 +134,10 @@ class SesionDia(Base):
     semaforo_enviado: Mapped[bool] = mapped_column(Boolean, default=False)
     felicitacion_mostrada: Mapped[bool] = mapped_column(Boolean, default=False)
     resumen_enviado: Mapped[bool] = mapped_column(Boolean, default=False)
+    primer_aviso_enviado: Mapped[bool] = mapped_column(Boolean, default=False)
+    tercer_checkout_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    resumen_post_enviado: Mapped[bool] = mapped_column(Boolean, default=False)
+    dashboard_enviado: Mapped[bool] = mapped_column(Boolean, default=False)
 
     categoria: Mapped[Categoria] = relationship(back_populates="sesiones")
 

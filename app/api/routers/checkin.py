@@ -9,6 +9,7 @@ from app.db.models import Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckinCreate, CheckinResponse
 from app.services.gamificacion import get_checkin_feedback
 from app.services import alertas, bienestar, semaforo
+from app.services.notificaciones_post import enviar_primer_aviso
 
 router = APIRouter()
 logger = logging.getLogger("api.checkin")
@@ -83,6 +84,11 @@ async def create_checkin(payload: CheckinCreate, db: AsyncSession = Depends(get_
                 )
             )
         total_activos = total_activos_result.scalar_one()
+
+        # Trigger 1: 3rd check-in → send primer aviso to coach
+        if nuevo_total == 3:
+            await enviar_primer_aviso(db, categoria, payload.fecha)
+
         umbral = max(5, round(total_activos * 0.6))
         if nuevo_total >= umbral:
             await semaforo.enviar_semaforo(db, categoria, payload.fecha, total_activos=total_activos)

@@ -46,6 +46,19 @@ TEMPLATES: dict[str, str] = {
         "🔔 *Recordatorio · {{1}}*\n"
         "📊 {{2}}"
     ),
+    # Nuevos triggers basados en comportamiento
+    "primer_aviso_checkin": (
+        "✅ *3 check-ins · {{1}}*\n"
+        "📊 {{2}}"
+    ),
+    "resumen_post": (
+        "📋 *Post-entreno · {{1}}*\n"
+        "📊 {{2}}"
+    ),
+    "dashboard_dia": (
+        "📊 *Resumen del día · {{1}}*\n"
+        "📊 {{2}}"
+    ),
     # Legacy — no se usan en el flujo activo
     "semaforo_diario": "🚦 *Semáforo {{1}}* — {{2}}",
     "resumen_diario":  "📊 *Resumen {{1}}* — {{2}}",

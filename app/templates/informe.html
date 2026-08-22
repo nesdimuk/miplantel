@@ -55,17 +55,23 @@
     </div>
   </div>
 
-  {# ── PENDIENTES ── #}
+  {# ── PENDIENTES CHECK-IN ── #}
   {% if pendientes %}
-  <h2 class="section-title">⏳ Sin registrar ({{ pendientes|length }})</h2>
+  <h2 class="section-title">⏳ Sin check-in ({{ pendientes|length }})</h2>
   <div class="pendientes-box">
     <ul class="pendientes-list">
       {% for p in pendientes %}<li>{{ p.nombre }}</li>{% endfor %}
     </ul>
-    <button class="btn-copy" id="btn-copy"
-            data-msg="⚽ {{ categoria.nombre }} — check-in de hoy&#10;&#10;Chicos, faltan por registrar:&#10;{{ pendientes|map(attribute='nombre')|join('&#10;') }}&#10;&#10;Háganlo antes del entrenamiento 🙏&#10;{{ request.url }}">
-      📋 Copiar recordatorio para el grupo
-    </button>
+    <div class="btn-copy-group">
+      <button class="btn-copy" id="btn-copy-nombres"
+              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan por hacer check-in:&#10;{{ pendientes|map(attribute='nombre')|join(', ') }}&#10;&#10;Regístrate antes del entrenamiento 🙏&#10;{{ request.url }}">
+        👥 Copiar con nombres
+      </button>
+      <button class="btn-copy" id="btn-copy-anonimo"
+              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan {{ pendientes|length }} jugadores por hacer el check-in de hoy.&#10;&#10;Regístrate antes del entrenamiento 🙏&#10;{{ request.url }}">
+        🕵️ Copiar anónimo
+      </button>
+    </div>
   </div>
   {% endif %}
 
@@ -103,6 +109,41 @@
   <p class="empty">Aún no hay check-ins para hoy.</p>
   {% endif %}
 
+  {# ── SIN CHECKOUT (post-entrenamiento) ── #}
+  {% if sin_checkout %}
+  <details class="inasistencias" id="sec-sin-checkout">
+    <summary>Sin check-out ({{ sin_checkout|length }})</summary>
+    <div class="pendientes-box" style="margin-top:.5rem">
+      <ul class="pendientes-list">
+        {% for p in sin_checkout %}<li>{{ p.nombre }}</li>{% endfor %}
+      </ul>
+      <div class="btn-copy-group">
+        <button class="btn-copy" id="btn-sinco-nombres"
+                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan por hacer check-out:&#10;{{ sin_checkout|map(attribute='nombre')|join(', ') }}&#10;&#10;Regístralo cuando termines el entrenamiento 💪&#10;{{ request.url }}">
+          👥 Copiar con nombres
+        </button>
+        <button class="btn-copy" id="btn-sinco-anonimo"
+                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan {{ sin_checkout|length }} jugadores por hacer el check-out de hoy.&#10;&#10;Regístralo cuando termines 💪&#10;{{ request.url }}">
+          🕵️ Copiar anónimo
+        </button>
+      </div>
+    </div>
+  </details>
+  {% endif %}
+
+  {# ── CHECK-OUTS RECIBIDOS ── #}
+  {% if con_checkout %}
+  <details class="inasistencias" id="sec-con-checkout">
+    <summary>Check-outs recibidos ({{ con_checkout|length }})</summary>
+    {% for co in con_checkout %}
+    <div class="inasist-row">
+      <div class="inasist-nombre">{{ co.nombre }}</div>
+      <div class="inasist-motivo">RPE {{ co.rpe }} · {{ co.duracion }} min · carga {{ co.carga }}</div>
+    </div>
+    {% endfor %}
+  </details>
+  {% endif %}
+
   {# ── INASISTENCIAS ── #}
   {% if inasistencias %}
   <details class="inasistencias">
@@ -119,39 +160,29 @@
 </div>{# /wrap #}
 
 <script>
-// ── Enumerate filter ──────────────────────────────────────────────────────────
-// (Jinja2 doesn't have enumerate; we use a loop index instead in the template)
-
-// ── Copy button ───────────────────────────────────────────────────────────────
-const btn = document.getElementById("btn-copy");
-if (btn) {
-  btn.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(btn.dataset.msg);
-      btn.textContent = "✅ ¡Copiado!";
-      btn.classList.add("copied");
-      setTimeout(() => {
-        btn.innerHTML = "📋 Copiar recordatorio para el grupo";
-        btn.classList.remove("copied");
-      }, 2500);
-    } catch {
-      // Fallback para Safari
-      const ta = document.createElement("textarea");
-      ta.value = btn.dataset.msg;
-      ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      document.execCommand("copy");
-      ta.remove();
-      btn.textContent = "✅ ¡Copiado!";
-      btn.classList.add("copied");
-      setTimeout(() => {
-        btn.innerHTML = "📋 Copiar recordatorio para el grupo";
-        btn.classList.remove("copied");
-      }, 2500);
-    }
-  });
+// ── Copy buttons ──────────────────────────────────────────────────────────────
+async function copyMsg(btn, originalHtml) {
+  const msg = btn.dataset.msg.replace(/&#10;/g, "\n");
+  try {
+    await navigator.clipboard.writeText(msg);
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = msg;
+    ta.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+  btn.textContent = "✅ ¡Copiado!";
+  btn.classList.add("copied");
+  setTimeout(() => { btn.innerHTML = originalHtml; btn.classList.remove("copied"); }, 2500);
 }
+
+document.querySelectorAll(".btn-copy").forEach(btn => {
+  const originalHtml = btn.innerHTML;
+  btn.addEventListener("click", () => copyMsg(btn, originalHtml));
+});
 
 // ── Service Worker ────────────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
