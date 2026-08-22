@@ -55,23 +55,18 @@
   {% endif %}
 
   {# ── SIN CHECKOUT ── #}
-  {% if sin_checkout %}
   <h2 class="section-title" id="titulo-sin-checkout">⏳ Sin check-out ({{ sin_checkout|length }})</h2>
   <div class="pendientes-box">
     <ul class="pendientes-list" id="lista-sin-checkout">
       {% for p in sin_checkout %}<li>{{ p.nombre }}</li>{% endfor %}
     </ul>
     <div class="btn-copy-group">
+      <button class="btn-wa btn-wa-sec" onclick="actualizarLista()">🔄 Actualizar lista</button>
       <button class="btn-wa" id="btn-recordatorio-nombres" onclick="enviarRecordatorio()">
         📲 Recordatorio con nombres
       </button>
-      <a class="btn-wa btn-wa-sec" target="_blank"
-         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\n' ~ con_checkout|length|string ~ ' jugadores ya hicieron su check-out.\n\n¡Regístralo aquí 👉 ' ~ checkout_url)|urlencode }}">
-        🕵️ Recordatorio anónimo
-      </a>
     </div>
   </div>
-  {% endif %}
 
   {# ── CHECKOUTS ── #}
   {% if con_checkout %}
@@ -99,39 +94,34 @@
 </div>
 
 <script>
-async function enviarRecordatorio() {
-  const btn = document.getElementById('btn-recordatorio-nombres');
-  btn.textContent = '⏳ Cargando...';
-  btn.disabled = true;
+async function actualizarLista() {
   try {
     const res = await fetch('/api/sin-checkout/{{ categoria.id }}/{{ fecha_str }}');
     const data = await res.json();
-
-    // Actualizar lista visual
     const lista = document.getElementById('lista-sin-checkout');
+    const titulo = document.getElementById('titulo-sin-checkout');
     if (lista) {
       lista.innerHTML = data.pendientes.length
         ? data.pendientes.map(n => `<li>${n}</li>`).join('')
         : '<li style="color:var(--muted)">¡Todos completaron! 🎉</li>';
     }
-    const titulo = document.getElementById('titulo-sin-checkout');
     if (titulo) titulo.textContent = `⏳ Sin check-out (${data.pendientes.length})`;
-
-    if (!data.pendientes || data.pendientes.length === 0) {
-      btn.textContent = '✅ Todos completaron';
-      return;
-    }
-    const nombres = data.pendientes.join('\n');
-    const texto = `⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}\n\n⏳ Falta el check-out de:\n${nombres}\n\n¡Regístralo aquí 👉 {{ checkout_url }}`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
   } catch(e) {
-    alert('Error al obtener la lista. Intenta de nuevo.');
-  } finally {
-    if (btn.textContent !== '✅ Todos completaron') {
-      btn.textContent = '📲 Recordatorio con nombres';
-    }
-    btn.disabled = false;
+    alert('Error al actualizar. Intenta de nuevo.');
   }
+}
+
+function enviarRecordatorio() {
+  const lista = document.getElementById('lista-sin-checkout');
+  const nombres = lista
+    ? [...lista.querySelectorAll('li')].map(li => li.textContent.trim()).filter(n => n && !n.includes('🎉'))
+    : [];
+  if (!nombres.length) {
+    alert('¡Todos han hecho check-out! 🎉');
+    return;
+  }
+  const texto = `⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}\n\n⏳ Falta el check-out de:\n${nombres.join('\n')}\n\n¡Regístralo aquí 👉 {{ checkout_url }}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
 }
 </script>
 </body>
