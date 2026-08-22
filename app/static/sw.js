@@ -1,4 +1,4 @@
-const CACHE = "miplantel-v1";
+const CACHE = "miplantel-v2";
 const STATIC = [
   "/static/form.css",
   "/static/form.js",
@@ -24,8 +24,7 @@ self.addEventListener("fetch", e => {
   const { request } = e;
   const url = new URL(request.url);
 
-  // API y páginas dinámicas → network first, sin cache
-  if (url.pathname.startsWith("/api/") || request.method !== "GET") return;
+  if (request.method !== "GET") return;
 
   // Estáticos → cache first
   if (url.pathname.startsWith("/static/")) {
@@ -39,12 +38,5 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Páginas → network first, cache fallback
-  e.respondWith(
-    fetch(request).then(resp => {
-      const clone = resp.clone();
-      caches.open(CACHE).then(c => c.put(request, clone));
-      return resp;
-    }).catch(() => caches.match(request))
-  );
+  // Todo lo demás (páginas dinámicas, API) → solo network, nunca cache
 });
