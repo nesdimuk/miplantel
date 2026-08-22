@@ -411,3 +411,48 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
 }
 .aviso-bienestar:hover { opacity: .85; }
 .aviso-visto { opacity: 0; transform: translateY(-4px); pointer-events: none; }
+
+/* ── INFORME DÍA ── */
+.dia-seccion-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 1.25rem 0 .5rem;
+}
+.dia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: .5rem;
+  margin-bottom: .25rem;
+}
+.dia-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: .75rem .5rem;
+  text-align: center;
+}
+.dia-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+.dia-label {
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: .2rem;
+  line-height: 1.2;
+}
+.dia-card-rojo    { border-top: 3px solid var(--rojo); }
+.dia-card-naranja { border-top: 3px solid var(--naranja); }
+.dia-card-amarillo{ border-top: 3px solid var(--amarillo); }
+.dia-card-verde   { border-top: 3px solid var(--verde); }
+.dia-card-rojo    .dia-num { color: var(--rojo); }
+.dia-card-naranja .dia-num { color: var(--naranja); }
+.dia-card-amarillo .dia-num { color: var(--amarillo); }
+.dia-card-verde   .dia-num { color: var(--verde); }

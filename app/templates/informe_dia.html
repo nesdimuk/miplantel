@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ categoria.nombre }} · Cierre del día · {{ fecha.strftime('%d/%m') }}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/static/informe.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-club">{{ club.nombre }}</span>
+    <span class="topbar-cat">{{ categoria.nombre }}</span>
+  </div>
+  <span class="topbar-fecha">Cierre · {{ fecha.strftime('%A %d/%m').capitalize() }}</span>
+</header>
+
+<div class="wrap">
+
+  {# ── ASISTENCIA ── #}
+  <div class="dia-seccion-titulo">ASISTENCIA</div>
+  <div class="dia-grid">
+    <div class="dia-card">
+      <div class="dia-num">{{ total_asistentes }}</div>
+      <div class="dia-label">asistieron</div>
+    </div>
+    <div class="dia-card">
+      <div class="dia-num">{{ total_inasistentes }}</div>
+      <div class="dia-label">inasistencias</div>
+    </div>
+    <div class="dia-card">
+      <div class="dia-num">{{ total_activos }}</div>
+      <div class="dia-label">en plantilla</div>
+    </div>
+    <div class="dia-card">
+      <div class="dia-num">{{ total_checkouts }}</div>
+      <div class="dia-label">check-outs</div>
+    </div>
+  </div>
+
+  {# ── BIENESTAR ── #}
+  <div class="dia-seccion-titulo">BIENESTAR PRE-ENTRENO</div>
+  <div class="dia-grid">
+    <div class="dia-card {% if bienestar_promedio is not none and bienestar_promedio < 3.5 %}dia-card-rojo{% elif bienestar_promedio is not none and bienestar_promedio < 4.5 %}dia-card-naranja{% elif bienestar_promedio is not none and bienestar_promedio < 5.5 %}dia-card-amarillo{% else %}dia-card-verde{% endif %}">
+      <div class="dia-num">{{ bienestar_promedio if bienestar_promedio is not none else '—' }}</div>
+      <div class="dia-label">índice promedio</div>
+    </div>
+    {% if conteo.rojo %}   <div class="dia-card dia-card-rojo"><div class="dia-num">{{ conteo.rojo }}</div><div class="dia-label">en rojo</div></div>{% endif %}
+    {% if conteo.naranja %}<div class="dia-card dia-card-naranja"><div class="dia-num">{{ conteo.naranja }}</div><div class="dia-label">en naranja</div></div>{% endif %}
+    {% if conteo.amarillo %}<div class="dia-card dia-card-amarillo"><div class="dia-num">{{ conteo.amarillo }}</div><div class="dia-label">en amarillo</div></div>{% endif %}
+    {% if conteo.verde %}  <div class="dia-card dia-card-verde"><div class="dia-num">{{ conteo.verde }}</div><div class="dia-label">en verde</div></div>{% endif %}
+  </div>
+
+  {# ── CARGA ── #}
+  {% if rpe_promedio is not none %}
+  <div class="dia-seccion-titulo">CARGA DEL ENTRENAMIENTO</div>
+  <div class="dia-grid">
+    <div class="dia-card">
+      <div class="dia-num">{{ rpe_promedio }}</div>
+      <div class="dia-label">RPE promedio</div>
+    </div>
+    <div class="dia-card">
+      <div class="dia-num">{{ carga_promedio or '—' }}</div>
+      <div class="dia-label">carga promedio</div>
+    </div>
+    <div class="dia-card">
+      <div class="dia-num">{{ carga_total or '—' }}</div>
+      <div class="dia-label">carga total grupo</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── MOLESTIAS ── #}
+  {% if molestias %}
+  <div class="dia-seccion-titulo">MOLESTIAS DEL DÍA ({{ molestias|length }})</div>
+  {% for m in molestias %}
+  <div class="inasist-row">
+    <div class="inasist-nombre">{{ m.nombre }}</div>
+    <div class="inasist-motivo">{{ m.momento }} · {{ m.severidad }} · {{ m.zona }}</div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {# ── INASISTENCIAS ── #}
+  {% if inasistentes %}
+  <details class="inasistencias">
+    <summary>Inasistencias ({{ inasistentes|length }})</summary>
+    {% for i in inasistentes %}
+    <div class="inasist-row">
+      <div class="inasist-nombre">{{ i.nombre }}</div>
+      <div class="inasist-motivo">{{ i.motivo }}</div>
+    </div>
+    {% endfor %}
+  </details>
+  {% endif %}
+
+</div>
+</body>
+</html>

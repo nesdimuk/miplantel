@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ categoria.nombre }} · Post-entreno · {{ fecha.strftime('%d/%m') }}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/static/informe.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-club">{{ club.nombre }}</span>
+    <span class="topbar-cat">{{ categoria.nombre }}</span>
+  </div>
+  <span class="topbar-fecha">Post-entreno · {{ fecha.strftime('%d/%m') }}</span>
+</header>
+
+<div class="wrap">
+
+  {# ── RESUMEN NUMÉRICO ── #}
+  <div class="stats" style="flex-wrap:wrap;gap:.75rem">
+    <div>
+      <div class="stats-num">{{ con_checkout|length }}<span style="font-size:.9rem;font-weight:400;color:var(--muted)"> / {{ total_asistentes }}</span></div>
+      <div class="stats-label">check-outs recibidos</div>
+    </div>
+    {% if rpe_promedio is not none %}
+    <div>
+      <div class="stats-num">{{ rpe_promedio }}</div>
+      <div class="stats-label">RPE promedio</div>
+    </div>
+    {% endif %}
+    {% if carga_promedio is not none %}
+    <div>
+      <div class="stats-num">{{ carga_promedio }}</div>
+      <div class="stats-label">carga promedio</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── MOLESTIAS POST ── #}
+  {% if molestias_post %}
+  <div class="urgentes-banner">
+    <div class="urgentes-titulo">🚨 Molestias post-entreno ({{ molestias_post|length }})</div>
+    {% for m in molestias_post %}
+    <div class="urgente-row">
+      <span class="urgente-nombre">{{ m.nombre }}</span>
+      <span class="urgente-tags">
+        <span class="urgente-tag">{{ m.molestia_severidad or '—' }} — {{ m.molestia_zona or 'zona no indicada' }}</span>
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── SIN CHECKOUT ── #}
+  {% if sin_checkout %}
+  <h2 class="section-title">⏳ Sin check-out ({{ sin_checkout|length }})</h2>
+  <div class="pendientes-box">
+    <ul class="pendientes-list">
+      {% for p in sin_checkout %}<li>{{ p.nombre }}</li>{% endfor %}
+    </ul>
+    <div class="btn-copy-group">
+      <a class="btn-wa" target="_blank"
+         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\nYa hicieron check-out:\n' ~ con_checkout|map(attribute='nombre')|join(', ') ~ '\n\n¡Regístralo aquí 👉 ' ~ checkout_url)|urlencode }}">
+        📲 Recordatorio con nombres
+      </a>
+      <a class="btn-wa btn-wa-sec" target="_blank"
+         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\n' ~ con_checkout|length|string ~ ' jugadores ya hicieron su check-out.\n\n¡Regístralo aquí 👉 ' ~ checkout_url)|urlencode }}">
+        🕵️ Recordatorio anónimo
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── CHECKOUTS ── #}
+  {% if con_checkout %}
+  <details class="inasistencias" id="sec-checkouts">
+    <summary>Check-outs recibidos ({{ con_checkout|length }})</summary>
+    {% for co in con_checkout %}
+    <div class="inasist-row" style="display:flex;justify-content:space-between;align-items:start;gap:.5rem">
+      <div>
+        <div class="inasist-nombre">{{ co.nombre }}</div>
+        <div class="inasist-motivo">RPE {{ co.rpe }} · {{ co.duracion }} min · carga {{ co.carga }}</div>
+        {% if co.fisico is not none or co.rendimiento is not none %}
+        <div class="inasist-motivo">Físico {{ co.fisico or '—' }}/7 · Rendimiento {{ co.rendimiento or '—' }}/7</div>
+        {% endif %}
+      </div>
+      {% if co.molestia_nueva %}
+      <span class="urgente-tag" style="flex-shrink:0;font-size:11px">🩹 {{ co.molestia_severidad or 'molestia' }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </details>
+  {% else %}
+  <p class="empty">Aún no hay check-outs registrados.</p>
+  {% endif %}
+
+</div>
+</body>
+</html>

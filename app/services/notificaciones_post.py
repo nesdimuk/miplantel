@@ -21,9 +21,9 @@ from app.services.alertas import enviar_a_staff
 logger = logging.getLogger("services.notificaciones_post")
 
 
-def _link(categoria_id: int, fecha: date) -> str:
+def _link(categoria_id: int, fecha: date, sufijo: str = "") -> str:
     base = settings.base_url.rstrip("/") if settings.base_url else ""
-    return f"{base}/r/{categoria_id}/{fecha.isoformat()}"
+    return f"{base}/r/{categoria_id}/{fecha.isoformat()}{sufijo}"
 
 
 async def enviar_primer_aviso(
@@ -81,7 +81,7 @@ async def _enviar_resumen_post_job(categoria_id: int, fecha_iso: str) -> None:
             if claimed.scalar_one_or_none() is None:
                 return
 
-            link = _link(categoria_id, fecha)
+            link = _link(categoria_id, fecha, "/post")
             await enviar_a_staff(
                 db,
                 club_id=categoria.club_id,
@@ -120,7 +120,7 @@ async def _enviar_dashboard_dia_job(categoria_id: int, fecha_iso: str) -> None:
             if claimed.scalar_one_or_none() is None:
                 return
 
-            link = _link(categoria_id, fecha)
+            link = _link(categoria_id, fecha, "/dia")
             await enviar_a_staff(
                 db,
                 club_id=categoria.club_id,
