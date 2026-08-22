@@ -93,11 +93,32 @@ async def informe_diario(
             "dolor": ci.dolor_pre,
             "estres": ci.estres,
             "hora_inicio": ci.hora_inicio_declarada,
+            "molestia_previa": ci.molestia_previa,
+            "molestia_zona": ci.molestia_zona,
+            "molestia_severidad": ci.molestia_severidad,
             "rpe": co.rpe if co else None,
             "duracion": co.duracion_min if co else None,
             "carga": co.carga if co else None,
         })
     registros.sort(key=lambda r: (_ORDEN[r["estado"]], r["bienestar"] or 99))
+
+    # Construir lista de urgentes: rojo + molestia bloqueante + inasistencias
+    urgentes = []
+    visto = set()
+    for r in registros:
+        tags = []
+        if r["estado"] == "rojo":
+            tags.append(f"🔴 Bienestar ROJO ({r['bienestar']})")
+        if r["molestia_previa"] and r["molestia_severidad"] == "bloqueante":
+            zona = r["molestia_zona"] or "zona no indicada"
+            tags.append(f"🚨 Molestia bloqueante — {zona}")
+        if tags:
+            urgentes.append({"nombre": r["nombre"], "tags": tags})
+            visto.add(r["nombre"])
+    for i in inasistentes.values():
+        c, j = i
+        nombre = f"{j.nombre} {j.apellido}"
+        urgentes.append({"nombre": nombre, "tags": ["⚠️ Inasistencia"]})
 
     inasistencias = [
         {"nombre": f"{j.nombre} {j.apellido}", "motivo": c.motivo_inasistencia or "—"}
@@ -159,6 +180,7 @@ async def informe_diario(
         "fecha": fecha,
         "fecha_str": fecha_str,
         "registros": registros,
+        "urgentes": urgentes,
         "pendientes": pendientes,
         "inasistencias": inasistencias,
         "sin_checkout": sin_checkout,

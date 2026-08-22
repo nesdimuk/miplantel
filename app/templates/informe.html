@@ -23,6 +23,19 @@
 
 <div class="wrap">
 
+  {# ── URGENTES ── #}
+  {% if urgentes %}
+  <div class="urgentes-banner">
+    <div class="urgentes-titulo">🚨 Atención inmediata ({{ urgentes|length }})</div>
+    {% for u in urgentes %}
+    <div class="urgente-row">
+      <span class="urgente-nombre">{{ u.nombre }}</span>
+      <span class="urgente-tags">{% for t in u.tags %}<span class="urgente-tag">{{ t }}</span>{% endfor %}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   {# ── STATS ── #}
   <div class="stats">
     <div>

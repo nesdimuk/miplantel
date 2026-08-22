@@ -257,3 +257,44 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
 
 /* ── EMPTY STATE ── */
 .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 1.5rem 0; }
+
+/* ── URGENTES BANNER ── */
+.urgentes-banner {
+  background: #1a0000;
+  border: 1.5px solid #e53e3e;
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+  margin-bottom: 1rem;
+}
+.urgentes-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fc8181;
+  letter-spacing: .03em;
+  margin-bottom: .6rem;
+}
+.urgente-row {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .45rem 0;
+  border-top: 1px solid #3d0000;
+}
+.urgente-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.urgente-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+}
+.urgente-tag {
+  font-size: 11.5px;
+  background: #3d0000;
+  color: #fc8181;
+  border-radius: 4px;
+  padding: .15rem .45rem;
+}
