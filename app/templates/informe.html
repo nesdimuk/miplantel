@@ -64,11 +64,11 @@
     </ul>
     <div class="btn-copy-group">
       <button class="btn-copy" id="btn-copy-nombres"
-              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan por hacer check-in:&#10;{{ pendientes|map(attribute='nombre')|join(', ') }}&#10;&#10;Regístrate antes del entrenamiento 🙏&#10;{{ request.url }}">
+              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan por hacer check-in:&#10;{{ pendientes|map(attribute='nombre')|join(', ') }}&#10;&#10;Regístrate antes del entrenamiento 🙏">
         👥 Copiar con nombres
       </button>
       <button class="btn-copy" id="btn-copy-anonimo"
-              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan {{ pendientes|length }} jugadores por hacer el check-in de hoy.&#10;&#10;Regístrate antes del entrenamiento 🙏&#10;{{ request.url }}">
+              data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan {{ pendientes|length }} jugadores por hacer el check-in de hoy.&#10;&#10;Regístrate antes del entrenamiento 🙏">
         🕵️ Copiar anónimo
       </button>
     </div>
@@ -119,11 +119,11 @@
       </ul>
       <div class="btn-copy-group">
         <button class="btn-copy" id="btn-sinco-nombres"
-                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan por hacer check-out:&#10;{{ sin_checkout|map(attribute='nombre')|join(', ') }}&#10;&#10;Regístralo cuando termines el entrenamiento 💪&#10;{{ request.url }}">
+                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan por hacer check-out:&#10;{{ sin_checkout|map(attribute='nombre')|join(', ') }}&#10;&#10;Regístralo cuando termines el entrenamiento 💪">
           👥 Copiar con nombres
         </button>
         <button class="btn-copy" id="btn-sinco-anonimo"
-                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan {{ sin_checkout|length }} jugadores por hacer el check-out de hoy.&#10;&#10;Regístralo cuando termines 💪&#10;{{ request.url }}">
+                data-msg="⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}&#10;&#10;Faltan {{ sin_checkout|length }} jugadores por hacer el check-out de hoy.&#10;&#10;Regístralo cuando termines 💪">
           🕵️ Copiar anónimo
         </button>
       </div>
