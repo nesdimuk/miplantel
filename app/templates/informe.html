@@ -36,19 +36,55 @@
   </div>
   {% endif %}
 
-  {# ── STATS ── #}
+  {# ── STATS + BIENESTAR COLAPSABLE ── #}
+  {% if registros %}
+  <details class="grupo-details" id="sec-grupo">
+    <summary class="stats stats-summary">
+      <div>
+        <div class="stats-num">{{ registros|length }}<span style="font-size:.9rem;font-weight:400;color:var(--muted)"> / {{ total_activos }}</span></div>
+        <div class="stats-label">check-ins · toca para ver bienestar</div>
+      </div>
+      <div class="stats-dots">
+        {% if conteo.rojo %}    <div class="dot dot-rojo">{{ conteo.rojo }}</div>{% endif %}
+        {% if conteo.naranja %} <div class="dot dot-naranja">{{ conteo.naranja }}</div>{% endif %}
+        {% if conteo.amarillo %}<div class="dot dot-amarillo">{{ conteo.amarillo }}</div>{% endif %}
+        {% if conteo.verde %}   <div class="dot dot-verde">{{ conteo.verde }}</div>{% endif %}
+      </div>
+    </summary>
+    {% for r in registros %}
+    <div class="card">
+      <div class="card-bar {{ r.estado }}"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <span class="card-nombre">{{ r.nombre }}</span>
+          <span class="card-score {{ r.estado }}">
+            {% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}
+          </span>
+        </div>
+        <div class="card-chips">
+          {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
+          {% if r.energia is not none %}<span class="chip">💪 {{ r.energia }}</span>{% endif %}
+          {% if r.estres  is not none %}<span class="chip">🧠 {{ r.estres }}</span>{% endif %}
+          {% if r.dolor   is not none %}<span class="chip">🩹 {{ r.dolor }}</span>{% endif %}
+          {% if r.animo   is not none %}<span class="chip">🙂 {{ r.animo }}</span>{% endif %}
+          {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
+          {% if r.molestia_previa %}<span class="chip chip-molestia">🩹 {{ r.molestia_severidad or 'molestia' }}{% if r.molestia_zona %} — {{ r.molestia_zona }}{% endif %}</span>{% endif %}
+        </div>
+        {% if r.carga %}
+        <div class="card-carga">Carga: <strong>{{ r.carga }}</strong> (RPE {{ r.rpe }} × {{ r.duracion }} min)</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </details>
+  {% else %}
   <div class="stats">
     <div>
-      <div class="stats-num">{{ registros|length }}<span style="font-size:.9rem;font-weight:400;color:var(--muted)"> / {{ total_activos }}</span></div>
+      <div class="stats-num">0<span style="font-size:.9rem;font-weight:400;color:var(--muted)"> / {{ total_activos }}</span></div>
       <div class="stats-label">check-ins recibidos</div>
     </div>
-    <div class="stats-dots">
-      {% if conteo.rojo %}    <div class="dot dot-rojo">{{ conteo.rojo }}</div>{% endif %}
-      {% if conteo.naranja %} <div class="dot dot-naranja">{{ conteo.naranja }}</div>{% endif %}
-      {% if conteo.amarillo %}<div class="dot dot-amarillo">{{ conteo.amarillo }}</div>{% endif %}
-      {% if conteo.verde %}   <div class="dot dot-verde">{{ conteo.verde }}</div>{% endif %}
-    </div>
   </div>
+  {% endif %}
 
   {# ── SPARKLINE ASISTENCIA 7D ── #}
   {% set max_val = asistencia_7d | max if asistencia_7d | max > 0 else 1 %}
@@ -88,40 +124,7 @@
   </div>
   {% endif %}
 
-  {# ── JUGADORES ── #}
-  {% if registros %}
-  <details class="grupo-details" id="sec-grupo">
-    <summary class="grupo-summary">
-      <span>📊 Bienestar del grupo</span>
-      <span class="grupo-count">{{ registros|length }} jugadores</span>
-    </summary>
-    {% for r in registros %}
-    <div class="card">
-      <div class="card-bar {{ r.estado }}"></div>
-      <div class="card-body">
-        <div class="card-top">
-          <span class="card-nombre">{{ r.nombre }}</span>
-          <span class="card-score {{ r.estado }}">
-            {% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}
-          </span>
-        </div>
-        <div class="card-chips">
-          {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
-          {% if r.energia is not none %}<span class="chip">💪 {{ r.energia }}</span>{% endif %}
-          {% if r.estres  is not none %}<span class="chip">🧠 {{ r.estres }}</span>{% endif %}
-          {% if r.dolor   is not none %}<span class="chip">🩹 {{ r.dolor }}</span>{% endif %}
-          {% if r.animo   is not none %}<span class="chip">🙂 {{ r.animo }}</span>{% endif %}
-          {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
-          {% if r.molestia_previa %}<span class="chip chip-molestia">🩹 {{ r.molestia_severidad or 'molestia' }}{% if r.molestia_zona %} — {{ r.molestia_zona }}{% endif %}</span>{% endif %}
-        </div>
-        {% if r.carga %}
-        <div class="card-carga">Carga: <strong>{{ r.carga }}</strong> (RPE {{ r.rpe }} × {{ r.duracion }} min)</div>
-        {% endif %}
-      </div>
-    </div>
-    {% endfor %}
-  </details>
-  {% else %}
+  {% if not registros %}
   <p class="empty">Aún no hay check-ins para hoy.</p>
   {% endif %}
 

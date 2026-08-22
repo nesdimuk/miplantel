@@ -329,3 +329,9 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
 
 /* chip molestia */
 .chip-molestia { background: #3d0000; color: #fc8181; }
+
+/* stats como summary colapsable */
+.stats-summary { cursor: pointer; user-select: none; list-style: none; }
+.stats-summary::-webkit-details-marker { display: none; }
+.grupo-details .stats-summary::after { content: none; }
+.grupo-details[open] .stats-label { color: var(--accent); }
