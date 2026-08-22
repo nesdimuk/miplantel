@@ -298,3 +298,34 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
   border-radius: 4px;
   padding: .15rem .45rem;
 }
+
+/* ── GRUPO COLAPSABLE ── */
+.grupo-details {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.grupo-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .85rem 1rem;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--text);
+  list-style: none;
+  user-select: none;
+}
+.grupo-summary::after { content: "▸"; font-size: 13px; color: var(--muted); transition: transform .2s; }
+.grupo-details[open] .grupo-summary::after { transform: rotate(90deg); }
+.grupo-count { font-size: 12px; font-weight: 400; color: var(--muted); margin-right: .5rem; }
+.grupo-details .card { border-radius: 0; box-shadow: none; border-top: 1px solid var(--border); margin-bottom: 0; }
+.grupo-details .card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+
+/* chip molestia */
+.chip-molestia { background: #3d0000; color: #fc8181; }

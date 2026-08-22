@@ -89,35 +89,38 @@
   {% endif %}
 
   {# ── JUGADORES ── #}
-  <h2 class="section-title">
-    {% if registros %}📊 Bienestar del grupo{% else %}Sin check-ins por ahora{% endif %}
-  </h2>
-
   {% if registros %}
-  {% for r in registros %}
-  <div class="card">
-    <div class="card-bar {{ r.estado }}"></div>
-    <div class="card-body">
-      <div class="card-top">
-        <span class="card-nombre">{{ r.nombre }}</span>
-        <span class="card-score {{ r.estado }}">
-          {% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}
-        </span>
+  <details class="grupo-details" id="sec-grupo">
+    <summary class="grupo-summary">
+      <span>📊 Bienestar del grupo</span>
+      <span class="grupo-count">{{ registros|length }} jugadores</span>
+    </summary>
+    {% for r in registros %}
+    <div class="card">
+      <div class="card-bar {{ r.estado }}"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <span class="card-nombre">{{ r.nombre }}</span>
+          <span class="card-score {{ r.estado }}">
+            {% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}
+          </span>
+        </div>
+        <div class="card-chips">
+          {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
+          {% if r.energia is not none %}<span class="chip">💪 {{ r.energia }}</span>{% endif %}
+          {% if r.estres  is not none %}<span class="chip">🧠 {{ r.estres }}</span>{% endif %}
+          {% if r.dolor   is not none %}<span class="chip">🩹 {{ r.dolor }}</span>{% endif %}
+          {% if r.animo   is not none %}<span class="chip">🙂 {{ r.animo }}</span>{% endif %}
+          {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
+          {% if r.molestia_previa %}<span class="chip chip-molestia">🩹 {{ r.molestia_severidad or 'molestia' }}{% if r.molestia_zona %} — {{ r.molestia_zona }}{% endif %}</span>{% endif %}
+        </div>
+        {% if r.carga %}
+        <div class="card-carga">Carga: <strong>{{ r.carga }}</strong> (RPE {{ r.rpe }} × {{ r.duracion }} min)</div>
+        {% endif %}
       </div>
-      <div class="card-chips">
-        {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
-        {% if r.energia is not none %}<span class="chip">💪 {{ r.energia }}</span>{% endif %}
-        {% if r.estres  is not none %}<span class="chip">🧠 {{ r.estres }}</span>{% endif %}
-        {% if r.dolor   is not none %}<span class="chip">🩹 {{ r.dolor }}</span>{% endif %}
-        {% if r.animo   is not none %}<span class="chip">🙂 {{ r.animo }}</span>{% endif %}
-        {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
-      </div>
-      {% if r.carga %}
-      <div class="card-carga">Carga: <strong>{{ r.carga }}</strong> (RPE {{ r.rpe }} × {{ r.duracion }} min)</div>
-      {% endif %}
     </div>
-  </div>
-  {% endfor %}
+    {% endfor %}
+  </details>
   {% else %}
   <p class="empty">Aún no hay check-ins para hoy.</p>
   {% endif %}
