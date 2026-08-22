@@ -1,14 +1,14 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.engine import get_db
 from app.db.models import Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckinCreate, CheckinResponse
 from app.services.gamificacion import get_checkin_feedback
-from app.services import bienestar, semaforo
+from app.services import bienestar
 from app.services.notificaciones_post import enviar_primer_aviso
 
 router = APIRouter()
@@ -71,21 +71,11 @@ async def create_checkin(payload: CheckinCreate, db: AsyncSession = Depends(get_
             await bienestar.revisar_bienestar(db, jugador, payload.fecha)
 
         categoria = await db.get(Categoria, jugador.categoria_id)
-        total_activos_result = await db.execute(
-                select(func.count(Jugador.id)).where(
-                    Jugador.categoria_id == categoria.id,
-                    Jugador.activo == True,  # noqa: E712
-                )
-            )
-        total_activos = total_activos_result.scalar_one()
 
         # Trigger 1: 3rd check-in → send primer aviso to coach
+        # Semáforo fires via scheduler tick at hora_disparo_semaforo(), not here
         if nuevo_total == 3:
             await enviar_primer_aviso(db, categoria, payload.fecha)
-
-        umbral = max(5, round(total_activos * 0.6))
-        if nuevo_total >= umbral:
-            await semaforo.enviar_semaforo(db, categoria, payload.fecha, total_activos=total_activos)
     except Exception:
         logger.exception("Error enviando alertas de check-in (jugador_id=%s)", jugador.id)
 
