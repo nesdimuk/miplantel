@@ -37,6 +37,13 @@
   {% endif %}
 
   {# ── STATS + BIENESTAR COLAPSABLE ── #}
+  {% set rojos = registros | selectattr("estado", "eq", "rojo") | list %}
+  {% if rojos and conteo.rojo > 0 %}
+  <div class="aviso-bienestar" id="aviso-bienestar">
+    ⚠️ Hay {{ rojos|length }} jugador{{ 'es' if rojos|length > 1 else '' }} con bienestar bajo — <strong>ver detalle ↓</strong>
+  </div>
+  {% endif %}
+
   {% if registros %}
   <details class="grupo-details" id="sec-grupo">
     <summary class="stats stats-summary">
@@ -216,6 +223,33 @@ document.querySelectorAll(".btn-copy").forEach(btn => {
   const originalHtml = btn.innerHTML;
   btn.addEventListener("click", () => copyMsg(btn, originalHtml));
 });
+
+// ── Aviso bienestar ──────────────────────────────────────────────────────────
+const avisoKey = "visto_bienestar_{{ categoria_id }}_{{ fecha_str }}";
+const aviso = document.getElementById("aviso-bienestar");
+const grupo = document.getElementById("sec-grupo");
+
+if (aviso) {
+  if (localStorage.getItem(avisoKey)) {
+    aviso.style.display = "none";
+  } else {
+    aviso.addEventListener("click", () => {
+      if (grupo) grupo.open = true;
+      aviso.classList.add("aviso-visto");
+      setTimeout(() => { aviso.style.display = "none"; }, 400);
+      localStorage.setItem(avisoKey, "1");
+    });
+  }
+}
+if (grupo) {
+  grupo.addEventListener("toggle", () => {
+    if (grupo.open && aviso) {
+      aviso.classList.add("aviso-visto");
+      setTimeout(() => { aviso.style.display = "none"; }, 400);
+      localStorage.setItem(avisoKey, "1");
+    }
+  });
+}
 
 // ── Service Worker ────────────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
