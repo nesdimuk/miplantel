@@ -1,121 +1,19 @@
 import asyncio
 import logging
-from datetime import date, datetime, timedelta
 from typing import Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.db.models import AlertaLog, Categoria, Checkin, Checkout, Jugador, Staff
+from app.db.models import AlertaLog, Staff
 from app.messaging import get_provider
 from app.messaging.base import SendResult
 from app.messaging.templates import render
 
 logger = logging.getLogger("services.alertas")
 
-# Delays (seconds) before 2nd and 3rd attempt. Patched to zeros in tests.
 RETRY_DELAYS = [1.0, 2.0]
 MAX_ATTEMPTS = 3
-
-
-def _link(categoria_id: int, fecha: date) -> str:
-    base = settings.base_url.rstrip("/") if settings.base_url else ""
-    return f"{base}/r/{categoria_id}/{fecha.isoformat()}"
-
-
-async def notificar_molestia(
-    db: AsyncSession,
-    jugador: Jugador,
-    zona: Optional[str],
-    contexto: str,  # "check-in" | "check-out"
-    fecha: date,
-) -> None:
-    """Immediate alert to staff when a player reports a physical issue."""
-    categoria = await db.get(Categoria, jugador.categoria_id)
-    await enviar_a_staff(
-        db,
-        club_id=categoria.club_id,
-        tipo="molestia",
-        categoria_id=categoria.id,
-        jugador_id=jugador.id,
-        template="alerta_molestia",
-        variables=[categoria.nombre, _link(categoria.id, fecha)],
-    )
-
-
-async def notificar_inasistencia(
-    db: AsyncSession,
-    jugador: Jugador,
-    motivo: str,
-    fecha: date,
-) -> None:
-    """Immediate alert to staff when a player reports absence."""
-    categoria = await db.get(Categoria, jugador.categoria_id)
-    await enviar_a_staff(
-        db,
-        club_id=categoria.club_id,
-        tipo="inasistencia",
-        categoria_id=categoria.id,
-        jugador_id=jugador.id,
-        template="alerta_inasistencia",
-        variables=[categoria.nombre, _link(categoria.id, fecha)],
-    )
-
-
-async def revisar_tendencia_molestia(
-    db: AsyncSession,
-    jugador: Jugador,
-    zona: Optional[str],
-    fecha: date,
-    umbral: int = 3,
-    ventana_dias: int = 14,
-) -> None:
-    """Alert staff if the same player has reported a molestia ≥ umbral times in the last ventana_dias days.
-    Fires at most once per 7 days per player to avoid spam."""
-    desde = fecha - timedelta(days=ventana_dias)
-
-    ci_count = (await db.execute(
-        select(func.count(Checkin.id)).where(
-            Checkin.jugador_id == jugador.id,
-            Checkin.molestia_previa == True,  # noqa: E712
-            Checkin.fecha >= desde,
-        )
-    )).scalar_one()
-
-    co_count = (await db.execute(
-        select(func.count(Checkout.id)).where(
-            Checkout.jugador_id == jugador.id,
-            Checkout.molestia_nueva == True,  # noqa: E712
-            Checkout.fecha >= desde,
-        )
-    )).scalar_one()
-
-    if ci_count + co_count < umbral:
-        return
-
-    # Throttle: max one tendencia alert per player per 7 days
-    hace_7 = datetime.utcnow() - timedelta(days=7)
-    ya_enviado = (await db.execute(
-        select(AlertaLog.id).where(
-            AlertaLog.jugador_id == jugador.id,
-            AlertaLog.tipo == "tendencia_molestia",
-            AlertaLog.created_at >= hace_7,
-        )
-    )).scalar_one_or_none()
-    if ya_enviado:
-        return
-
-    categoria = await db.get(Categoria, jugador.categoria_id)
-    await enviar_a_staff(
-        db,
-        club_id=categoria.club_id,
-        tipo="tendencia_molestia",
-        categoria_id=categoria.id,
-        jugador_id=jugador.id,
-        template="alerta_tendencia_molestia",
-        variables=[categoria.nombre, _link(categoria.id, fecha)],
-    )
 
 
 async def enviar_a_staff(

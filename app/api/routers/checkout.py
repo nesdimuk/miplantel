@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.engine import get_db
 from app.db.models import Checkout, Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckoutCreate, CheckoutResponse
-from app.services import alertas, bienestar
 from app.services.notificaciones_post import _enviar_resumen_post_job, _enviar_dashboard_dia_job
 from app.scheduler.jobs import scheduler
 
@@ -84,19 +83,12 @@ async def create_checkout(payload: CheckoutCreate, db: AsyncSession = Depends(ge
 
     nuevo_total_co = await _upsert_sesion_checkout(db, jugador.categoria_id, payload.fecha)
 
-    # Immediate staff alerts — must never break the player's registration
+    # Trigger 4+5: 3rd checkout → schedule resumen_post (+1h) and dashboard (+3h)
     try:
-        if payload.molestia_nueva:
-            if payload.molestia_severidad is None or payload.molestia_severidad == "bloqueante":
-                await alertas.notificar_molestia(db, jugador, payload.molestia_zona, "check-out", payload.fecha)
-            await alertas.revisar_tendencia_molestia(db, jugador, payload.molestia_zona, payload.fecha)
-        await bienestar.revisar_carga(db, jugador, payload.fecha)
-
-        # Trigger 4+5: 3rd checkout → schedule resumen_post (+1h) and dashboard (+3h)
         if nuevo_total_co == 3:
             await _schedule_post_training(db, jugador.categoria_id, payload.fecha)
     except Exception:
-        logger.exception("Error enviando alertas de check-out (jugador_id=%s)", jugador.id)
+        logger.exception("Error programando post-training (jugador_id=%s)", jugador.id)
 
     await db.commit()
     await db.refresh(checkout)

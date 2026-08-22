@@ -8,7 +8,7 @@ from app.db.engine import get_db
 from app.db.models import Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckinCreate, CheckinResponse
 from app.services.gamificacion import get_checkin_feedback
-from app.services import alertas, bienestar, semaforo
+from app.services import bienestar, semaforo
 from app.services.notificaciones_post import enviar_primer_aviso
 
 router = APIRouter()
@@ -66,14 +66,8 @@ async def create_checkin(payload: CheckinCreate, db: AsyncSession = Depends(get_
 
     # Staff alerts & semáforo — must never break the player's registration
     try:
-        if not payload.asistencia:
-            await alertas.notificar_inasistencia(db, jugador, payload.motivo_inasistencia, payload.fecha)
-        else:
-            if payload.molestia_previa:
-                # Only immediate WhatsApp for bloqueante (or legacy payloads without severity)
-                if payload.molestia_severidad is None or payload.molestia_severidad == "bloqueante":
-                    await alertas.notificar_molestia(db, jugador, payload.molestia_zona, "check-in", payload.fecha)
-                await alertas.revisar_tendencia_molestia(db, jugador, payload.molestia_zona, payload.fecha)
+        if payload.asistencia:
+            # Solo alerta tardía en rojo — el resto vive en el informe web
             await bienestar.revisar_bienestar(db, jugador, payload.fecha)
 
         categoria = await db.get(Categoria, jugador.categoria_id)
