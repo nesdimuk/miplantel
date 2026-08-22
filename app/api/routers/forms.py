@@ -46,6 +46,8 @@ async def form_page(
     return templates.TemplateResponse(request, "form.html", {
         "club_nombre": club.nombre,
         "categoria_nombre": categoria.nombre,
+        "color_primario": club.color_primario or "#C9A227",
+        "color_secundario": club.color_secundario or "#1A1A1A",
         "fecha_display": fecha_display,
         "form_data": {
             "categoria_id": categoria.id,

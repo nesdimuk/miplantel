@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>{{ club_nombre }} · {{ categoria_nombre }}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/static/form.css">
   <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#C9A227">
+  <meta name="theme-color" content="{{ color_primario }}">
+  <style>:root { --acento: {{ color_primario }}; --acento-dim: {{ color_primario }}22; --text-topbar: {{ color_secundario }}; }</style>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

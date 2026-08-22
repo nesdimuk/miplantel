@@ -1,7 +1,9 @@
 :root {
-  --primary: #1565c0;
-  --primary-dark: #0d47a1;
-  --secondary: #eceff1;
+  --primary: #1a1a1a;
+  --primary-dark: #0d0d0d;
+  --acento: #C9A227;
+  --acento-dim: rgba(201,162,39,.12);
+  --secondary: #f0f0f0;
   --warn: #ef6c00;
   --ok: #2e7d32;
   --text: #1a1a1a;
@@ -13,7 +15,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -22,8 +24,8 @@ body {
 }
 
 .topbar {
-  background: var(--primary-dark);
-  color: #fff;
+  background: var(--acento);
+  color: var(--text-topbar, #fff);
   padding: 14px 20px;
   text-align: center;
 }
@@ -69,7 +71,7 @@ h2 { font-size: 1.35rem; text-align: center; margin-top: 12px; }
 .btn-big:disabled { opacity: 0.4; cursor: default; }
 .btn-sub { font-size: 0.8rem; font-weight: 400; opacity: 0.8; }
 
-.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary { background: var(--acento); color: #fff; }
 .btn-secondary { background: var(--secondary); color: var(--text); }
 .btn-warn { background: var(--warn); color: #fff; }
 .btn-danger { background: #c62828; color: #fff; }
@@ -93,7 +95,7 @@ h2 { font-size: 1.35rem; text-align: center; margin-top: 12px; }
   background: #fff;
   appearance: none;
 }
-.input-big:focus { outline: none; border-color: var(--primary); }
+.input-big:focus { outline: none; border-color: var(--acento); }
 
 .hidden { display: none !important; }
 
@@ -107,7 +109,7 @@ h2 { font-size: 1.35rem; text-align: center; margin-top: 12px; }
   font-size: 1rem;
   cursor: pointer;
 }
-.chip.selected { border-color: var(--primary); background: #e3f2fd; font-weight: 600; }
+.chip.selected { border-color: var(--acento); background: #e3f2fd; font-weight: 600; }
 
 /* Escala 1-7 */
 .progreso { text-align: center; color: var(--text-soft); font-size: 0.85rem; letter-spacing: 2px; }
@@ -158,7 +160,7 @@ h2 { font-size: 1.35rem; text-align: center; margin-top: 12px; }
   width: 48px; height: 48px;
   margin: 60px auto 0;
   border: 5px solid var(--secondary);
-  border-top-color: var(--primary);
+  border-top-color: var(--acento);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
