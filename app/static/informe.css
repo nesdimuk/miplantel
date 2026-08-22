@@ -335,3 +335,18 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
 .stats-summary::-webkit-details-marker { display: none; }
 .grupo-details .stats-summary::after { content: none; }
 .grupo-details[open] .stats-label { color: var(--accent); }
+
+/* botón ver bienestar */
+.ver-bienestar-btn {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(201,162,39,.12);
+  border-radius: 4px;
+  padding: .2rem .5rem;
+  white-space: nowrap;
+  transition: opacity .15s;
+}
+.grupo-details[open] .ver-bienestar-btn {
+  opacity: .5;
+}
