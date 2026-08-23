@@ -77,7 +77,7 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
     result = await db.execute(
         select(Staff).where(Staff.telefono_whatsapp == from_number, Staff.recibe_alertas == True)  # noqa: E712
     )
-    staff = result.scalar_one_or_none()
+    staff = result.scalars().first()
     if not staff:
         logger.debug("Mensaje de número no reconocido como staff: %s", from_number)
         return
