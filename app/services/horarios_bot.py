@@ -4,7 +4,7 @@ The coach sends a free-text message like:
   "esta semana Sub-13 entrena martes y jueves a las 15:30"
   "el Sub-14 va a entrenar lunes miércoles viernes a las 17:00"
 
-We use Claude to extract: category name + time + days, then update mp_categorias.
+We use GPT-4o-mini to extract: category name + time + days, then update mp_categorias.
 """
 import json
 import logging
@@ -43,13 +43,13 @@ Si el mensaje no contiene información de horarios, responde con: []
 
 
 async def parsear_horario(mensaje: str, categorias: list[str]) -> list[dict]:
-    """Call Claude to extract schedule changes from a coach message.
+    """Call GPT-4o-mini to extract schedule changes from a coach message.
 
     Returns list of dicts: [{categoria, hora_inicio, dias}]
     Empty list if no schedule info found or on error.
     """
-    if not settings.anthropic_api_key:
-        logger.warning("ANTHROPIC_API_KEY no configurada — usando parser de regex fallback")
+    if not settings.openai_api_key:
+        logger.warning("OPENAI_API_KEY no configurada — usando parser regex fallback")
         return _parsear_regex(mensaje, categorias)
 
     prompt = _PROMPT.format(
@@ -59,26 +59,32 @@ async def parsear_horario(mensaje: str, categorias: list[str]) -> list[dict]:
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.post(
-                "https://api.anthropic.com/v1/messages",
+                "https://api.openai.com/v1/chat/completions",
                 headers={
-                    "x-api-key": settings.anthropic_api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
+                    "Authorization": f"Bearer {settings.openai_api_key}",
+                    "Content-Type": "application/json",
                 },
                 json={
-                    "model": "claude-haiku-4-5-20251001",
+                    "model": "gpt-4o-mini",
                     "max_tokens": 256,
-                    "system": _SYSTEM,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                    "messages": [
+                        {"role": "system", "content": _SYSTEM},
+                        {"role": "user", "content": prompt},
+                    ],
                 },
             )
         if resp.status_code != 200:
-            logger.error("Claude API error %s: %s", resp.status_code, resp.text)
+            logger.error("OpenAI API error %s: %s", resp.status_code, resp.text)
             return []
-        content = resp.json()["content"][0]["text"].strip()
-        return json.loads(content)
+        content = resp.json()["choices"][0]["message"]["content"].strip()
+        parsed = json.loads(content)
+        # GPT with json_object mode wraps in an object — unwrap if needed
+        if isinstance(parsed, dict):
+            parsed = parsed.get("cambios") or parsed.get("horarios") or list(parsed.values())[0] if parsed else []
+        return parsed if isinstance(parsed, list) else []
     except Exception:
-        logger.exception("Error parseando horario con Claude")
+        logger.exception("Error parseando horario con OpenAI")
         return []
 
 

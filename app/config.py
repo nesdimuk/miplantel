@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     # Admin
     admin_password: str = "admin123"
 
-    # Claude AI (para parsing de mensajes del entrenador)
-    anthropic_api_key: str = ""
+    # OpenAI (para parsing de mensajes del entrenador)
+    openai_api_key: str = ""
 
     @property
     def whatsapp_api_url(self) -> str:
