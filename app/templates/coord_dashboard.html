@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordinación · {{ club.nombre }}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    :root {
+      --acento: {{ club.color_primario or '#F5C518' }};
+      --acento-dim: {{ club.color_primario or '#F5C518' }}22;
+      --texto-top: {{ club.color_secundario or '#1A1A1A' }};
+      --bg: #f0f2f5;
+      --card: #fff;
+      --muted: #607080;
+      --border: #e0e6ec;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1a1a1a; }
+
+    /* Topbar */
+    .topbar {
+      background: var(--acento);
+      color: var(--texto-top);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .topbar .brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 1px; }
+    .topbar .sub { font-size: 0.85rem; opacity: 0.8; }
+    .topbar .fecha { margin-left: auto; font-size: 0.85rem; opacity: 0.85; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* KPI globales */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      text-align: center;
+    }
+    .kpi-card .num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.8rem;
+      color: var(--texto-top);
+      line-height: 1;
+    }
+    .kpi-card .num.acento { color: var(--acento); filter: brightness(.8); }
+    .kpi-card .lbl { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+
+    /* Grid de categorías */
+    h2 { font-size: 1rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .cat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow .15s;
+      display: block;
+    }
+    .cat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.10); }
+
+    .cat-header {
+      background: var(--acento);
+      color: var(--texto-top);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cat-nombre { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .5px; }
+    .cat-dt { font-size: 0.8rem; opacity: .85; }
+    .semaforo { font-size: 1.6rem; }
+
+    .cat-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+    .stat-row { display: flex; align-items: center; gap: 10px; }
+    .stat-label { font-size: 0.78rem; color: var(--muted); width: 90px; flex-shrink: 0; }
+    .bar-wrap { flex: 1; background: #eef1f5; border-radius: 6px; height: 10px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 6px; background: var(--acento); filter: brightness(.85); min-width: 2px; }
+    .bar-fill.checkout { background: #1565c0; }
+    .stat-val { font-size: 0.82rem; font-weight: 600; width: 50px; text-align: right; color: #1a1a1a; }
+
+    .hooper-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    .hooper-label { font-size: 0.78rem; color: var(--muted); }
+    .hooper-val { font-size: 1.1rem; font-weight: 700; }
+    .hooper-val.verde  { color: #2e7d32; }
+    .hooper-val.amarillo { color: #f57f17; }
+    .hooper-val.naranja { color: #e65100; }
+    .hooper-val.rojo   { color: #c62828; }
+    .hooper-val.sin    { color: var(--muted); }
+
+    .ver-link {
+      display: block;
+      text-align: center;
+      background: var(--acento-dim);
+      color: var(--texto-top);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .ver-link:hover { background: var(--acento); }
+
+    @media (max-width: 600px) {
+      .kpi-row { grid-template-columns: repeat(3,1fr); }
+      .kpi-card .num { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="brand">{{ club.nombre }}</div>
+    <div class="sub">Coordinación Deportiva</div>
+  </div>
+  <div class="fecha">{{ hoy.strftime('%A %d de %B').capitalize() }}</div>
+</header>
+
+<main>
+
+  <!-- KPI globales -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="num">{{ totales.jugadores }}</div>
+      <div class="lbl">Jugadores activos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="num acento">{{ totales.checkins }}</div>
+      <div class="lbl">Check-ins hoy</div>
+    </div>
+    <div class="kpi-card">
+      <div class="num" style="color:#1565c0">{{ totales.checkouts }}</div>
+      <div class="lbl">Check-outs hoy</div>
+    </div>
+  </div>
+
+  <!-- Grid categorías -->
+  <h2>Categorías · {{ resumen|length }} equipos</h2>
+  <div class="cat-grid">
+    {% for r in resumen %}
+    {% set cat = r.categoria %}
+    <div class="cat-card">
+      <div class="cat-header">
+        <div>
+          <div class="cat-nombre">{{ cat.nombre }}</div>
+          <div class="cat-dt">{{ r.entrenador }}</div>
+        </div>
+        <div class="semaforo">{{ r.semaforo }}</div>
+      </div>
+
+      <div class="cat-body">
+        <!-- Check-in -->
+        <div class="stat-row">
+          <div class="stat-label">Check-in</div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:{{ r.pct_checkin }}%"></div></div>
+          <div class="stat-val">{{ r.checkins }}/{{ r.total_jug }}</div>
+        </div>
+
+        <!-- Check-out -->
+        <div class="stat-row">
+          <div class="stat-label">Check-out</div>
+          <div class="bar-wrap"><div class="bar-fill checkout" style="width:{{ r.pct_checkout }}%"></div></div>
+          <div class="stat-val">{{ r.checkouts }}/{{ r.checkins }}</div>
+        </div>
+
+        <!-- Hooper -->
+        <div class="hooper-row">
+          <div class="hooper-label">Hooper Index promedio</div>
+          {% if r.hooper %}
+            {% if r.hooper >= 5.5 %}
+              <div class="hooper-val verde">{{ r.hooper }} 🟢</div>
+            {% elif r.hooper >= 4.5 %}
+              <div class="hooper-val amarillo">{{ r.hooper }} 🟡</div>
+            {% elif r.hooper >= 3.5 %}
+              <div class="hooper-val naranja">{{ r.hooper }} 🟠</div>
+            {% else %}
+              <div class="hooper-val rojo">{{ r.hooper }} 🔴</div>
+            {% endif %}
+          {% else %}
+            <div class="hooper-val sin">Sin datos</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <a class="ver-link" href="/r/{{ cat.id }}/{{ hoy.isoformat() }}" target="_blank">
+        Ver informe completo →
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+</main>
+
+<script>
+  // Auto-refresh cada 2 minutos
+  setTimeout(() => location.reload(), 120000);
+</script>
+
+</body>
+</html>

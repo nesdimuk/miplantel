@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordinación · {{ club.nombre }}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    :root {
+      --acento: {{ club.color_primario or '#F5C518' }};
+      --texto-top: {{ club.color_secundario or '#1A1A1A' }};
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.10);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--texto-top);
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .badge {
+      background: var(--acento);
+      color: var(--texto-top);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      width: fit-content;
+      margin: 0 auto;
+    }
+    label { font-size: 0.82rem; color: #607080; font-weight: 500; }
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #dde3ea;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      margin-top: 4px;
+    }
+    input:focus { outline: none; border-color: var(--acento); }
+    button {
+      background: var(--acento);
+      color: var(--texto-top);
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { filter: brightness(1.06); }
+    .error { color: #c62828; font-size: 0.88rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">{{ club.nombre }}</div>
+    <div class="badge">Coordinación Deportiva</div>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post">
+      <label>Contraseña
+        <input type="password" name="password" autofocus autocomplete="current-password">
+      </label>
+      <br><br>
+      <button type="submit">Ingresar</button>
+    </form>
+  </div>
+</body>
+</html>
