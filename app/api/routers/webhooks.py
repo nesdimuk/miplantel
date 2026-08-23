@@ -92,6 +92,16 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
     nombres_categorias = [c.nombre for c in categorias]
     cat_map = {c.nombre: c for c in categorias}
 
+    if texto.lower() in ("hola", "ayuda", "menu", "menú", "help", "?"):
+        cats_ejemplo = nombres_categorias[0] if nombres_categorias else "Sub-13"
+        await enviar_texto_whatsapp(
+            from_number,
+            f"📅 *Mi Plantel · Horarios*\n\n"
+            f"Escríbeme el horario de la semana y lo actualizo automáticamente.\n\n"
+            f"Ejemplo: _{cats_ejemplo} entrena martes y jueves a las 15:30_",
+        )
+        return
+
     cambios = await parsear_horario(texto, nombres_categorias)
     if not cambios:
         return
