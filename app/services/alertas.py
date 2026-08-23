@@ -35,7 +35,12 @@ async def enviar_a_staff(
             Staff.activo == True,  # noqa: E712
         )
     )
-    destinatarios = result.scalars().all()
+    todos = result.scalars().all()
+    # Si categoria_ids es null → recibe todo; si tiene lista → solo si categoria_id está en ella
+    destinatarios = [
+        s for s in todos
+        if s.categoria_ids is None or categoria_id in s.categoria_ids
+    ]
     if not destinatarios:
         logger.warning("Alerta %s sin destinatarios (club_id=%s)", tipo, club_id)
         return

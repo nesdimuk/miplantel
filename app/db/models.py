@@ -71,10 +71,14 @@ class Staff(Base):
     club_id: Mapped[int] = mapped_column(ForeignKey("mp_clubes.id"), nullable=False, index=True)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     telefono_whatsapp: Mapped[str] = mapped_column(String(20), nullable=False)
-    rol: Mapped[str] = mapped_column(String(20), nullable=False)  # DT / PF / ADMIN
+    rol: Mapped[str] = mapped_column(String(20), nullable=False)  # DT / PF / ADMIN / COORD
     recibe_alertas: Mapped[bool] = mapped_column(Boolean, default=True)
     recibe_resumen: Mapped[bool] = mapped_column(Boolean, default=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
+    # null = recibe alertas de todas las categorías del club
+    categoria_ids: Mapped[Optional[list[int]]] = mapped_column(ARRAY(Integer), nullable=True)
+    es_coordinador: Mapped[bool] = mapped_column(Boolean, default=False)
+    password_coord: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
     club: Mapped[Club] = relationship(back_populates="staff")
 
