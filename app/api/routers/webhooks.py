@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db.engine import get_db
-from app.db.models import AlertaLog
+from app.db.models import AlertaLog, Staff, Categoria, Club
+from app.services.horarios_bot import parsear_horario, enviar_texto_whatsapp
 
 router = APIRouter()
 logger = logging.getLogger("api.webhooks")
@@ -31,9 +32,10 @@ async def verify_webhook(
 
 @router.post("/webhooks/whatsapp")
 async def receive_webhook(request: Request, db: AsyncSession = Depends(get_db)):
-    """Receive delivery statuses (sent/delivered/read/failed) and store them in alertas_log."""
+    """Receive delivery statuses and incoming messages from Meta WhatsApp Cloud API."""
     body = await request.json()
 
+    # Process delivery status updates
     statuses = _extract_statuses(body)
     for st in statuses:
         wamid = st.get("id")
@@ -53,8 +55,74 @@ async def receive_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             errors = json.dumps(st.get("errors", []), ensure_ascii=False)
             alerta.respuesta_api = f"{alerta.respuesta_api or ''}\nwebhook_failed: {errors}".strip()
 
+    # Process incoming text messages (coach schedule updates)
+    for msg in _extract_messages(body):
+        if msg.get("type") != "text":
+            continue
+        from_number = msg.get("from", "")
+        texto = msg.get("text", {}).get("body", "").strip()
+        if not texto:
+            continue
+        try:
+            await _procesar_mensaje_entrante(db, from_number, texto)
+        except Exception:
+            logger.exception("Error procesando mensaje entrante de %s", from_number)
+
     await db.commit()
     return {"status": "ok"}
+
+
+async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: str) -> None:
+    """Process an incoming WhatsApp message from a staff member."""
+    result = await db.execute(
+        select(Staff).where(Staff.telefono_whatsapp == from_number, Staff.recibe_alertas == True)  # noqa: E712
+    )
+    staff = result.scalar_one_or_none()
+    if not staff:
+        logger.debug("Mensaje de número no reconocido como staff: %s", from_number)
+        return
+
+    result = await db.execute(
+        select(Categoria).where(Categoria.club_id == staff.club_id, Categoria.activo == True)  # noqa: E712
+    )
+    categorias = result.scalars().all()
+    if not categorias:
+        return
+
+    nombres_categorias = [c.nombre for c in categorias]
+    cat_map = {c.nombre: c for c in categorias}
+
+    cambios = await parsear_horario(texto, nombres_categorias)
+    if not cambios:
+        return
+
+    confirmaciones = []
+    for cambio in cambios:
+        cat = cat_map.get(cambio.get("categoria"))
+        if not cat:
+            continue
+
+        hora = cambio.get("hora_inicio")
+        dias = cambio.get("dias")
+
+        if hora:
+            cat.hora_inicio = hora
+        if dias:
+            cat.dias_entrenamiento = dias
+
+        partes = []
+        if hora:
+            partes.append(f"hora {hora}")
+        if dias:
+            nombres_dias = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+            partes.append("días: " + ", ".join(nombres_dias[d] for d in sorted(dias)))
+        confirmaciones.append(f"✅ {cat.nombre}: {' · '.join(partes)}")
+
+    if confirmaciones:
+        await enviar_texto_whatsapp(
+            from_number,
+            "📅 Horarios actualizados:\n" + "\n".join(confirmaciones),
+        )
 
 
 def _extract_statuses(body: dict) -> list[dict]:
@@ -64,3 +132,12 @@ def _extract_statuses(body: dict) -> list[dict]:
         for change in entry.get("changes", []):
             statuses.extend(change.get("value", {}).get("statuses", []))
     return statuses
+
+
+def _extract_messages(body: dict) -> list[dict]:
+    """Flatten Meta's entry[].changes[].value.messages[] structure."""
+    messages = []
+    for entry in body.get("entry", []):
+        for change in entry.get("changes", []):
+            messages.extend(change.get("value", {}).get("messages", []))
+    return messages

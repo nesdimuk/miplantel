@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Admin
     admin_password: str = "admin123"
 
+    # Claude AI (para parsing de mensajes del entrenador)
+    anthropic_api_key: str = ""
+
     @property
     def whatsapp_api_url(self) -> str:
         return f"https://graph.facebook.com/{self.whatsapp_api_version}/{self.whatsapp_phone_id}/messages"
