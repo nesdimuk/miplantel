@@ -45,25 +45,26 @@ async def tick() -> None:
                 hoy = ahora.date()
 
                 await recordatorios_svc.evaluar_recordatorios(db, cat, hoy, hhmm)
-                hora_disparo = await semaforo_svc.hora_disparo_semaforo(db, cat, hoy)
-                # Si el primer aviso ya salió, dar 10 min de gracia antes del semáforo
+
                 sesion_res = await db.execute(
                     select(SesionDia).where(SesionDia.categoria_id == cat.id, SesionDia.fecha == hoy)
                 )
                 sesion = sesion_res.scalar_one_or_none()
-                if sesion and sesion.primer_aviso_enviado and not sesion.semaforo_enviado:
-                    h, m = int(hora_disparo[:2]), int(hora_disparo[3:])
-                    total = h * 60 + m + 10
-                    hora_disparo = f"{total // 60:02d}:{total % 60:02d}"
-                if hhmm >= hora_disparo:
-                    total_activos = (await db.execute(
-                        select(func.count(Jugador.id)).where(
-                            Jugador.categoria_id == cat.id,
-                            Jugador.activo == True,  # noqa: E712
-                        )
-                    )).scalar_one()
-                    await semaforo_svc.enviar_semaforo(db, cat, hoy, forzado=True, total_activos=total_activos)
-                if hhmm >= cat.hora_resumen:
+
+                # Semáforo: solo si ya hubo primer aviso (≥3 check-ins) Y llegó la hora
+                if sesion and sesion.primer_aviso_enviado:
+                    hora_disparo = await semaforo_svc.hora_disparo_semaforo(db, cat, hoy)
+                    if hhmm >= hora_disparo:
+                        total_activos = (await db.execute(
+                            select(func.count(Jugador.id)).where(
+                                Jugador.categoria_id == cat.id,
+                                Jugador.activo == True,  # noqa: E712
+                            )
+                        )).scalar_one()
+                        await semaforo_svc.enviar_semaforo(db, cat, hoy, forzado=True, total_activos=total_activos)
+
+                # Resumen: solo si ya se envió el semáforo (entrenamiento ocurrió)
+                if sesion and sesion.semaforo_enviado and hhmm >= cat.hora_resumen:
                     await resumen_svc.enviar_resumen(db, cat, hoy)
 
             await db.commit()
