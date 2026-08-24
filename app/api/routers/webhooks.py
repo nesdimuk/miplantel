@@ -102,10 +102,12 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
         )
         return
 
+    from app.services.horarios_semana import _formato_horario, marcar_horario_confirmado
+
     # Confirmation of unchanged schedule (reply to Sunday message)
     if texto.lower().strip() in ("si", "sí", "ok", "mismo", "confirmo", "igual", "se mantiene"):
-        from app.services.horarios_semana import _formato_horario
         resumen = "\n".join(_formato_horario(c) for c in sorted(categorias, key=lambda c: c.nombre))
+        await marcar_horario_confirmado(db, [c.id for c in categorias])
         await enviar_texto_whatsapp(
             from_number,
             f"✅ *Horarios confirmados para esta semana*\n\n{resumen}",
@@ -117,6 +119,7 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
         return
 
     confirmaciones = []
+    cats_actualizadas = []
     for cambio in cambios:
         cat = cat_map.get(cambio.get("categoria"))
         if not cat:
@@ -137,8 +140,10 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
             nombres_dias = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
             partes.append("días: " + ", ".join(nombres_dias[d] for d in sorted(dias)))
         confirmaciones.append(f"✅ {cat.nombre}: {' · '.join(partes)}")
+        cats_actualizadas.append(cat.id)
 
     if confirmaciones:
+        await marcar_horario_confirmado(db, cats_actualizadas)
         await enviar_texto_whatsapp(
             from_number,
             "📅 Horarios actualizados:\n" + "\n".join(confirmaciones),

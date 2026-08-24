@@ -34,6 +34,7 @@ class Categoria(Base):
     club_id: Mapped[int] = mapped_column(ForeignKey("mp_clubes.id"), nullable=False, index=True)
     nombre: Mapped[str] = mapped_column(String(80), nullable=False)
     hora_inicio: Mapped[str] = mapped_column(String(5), nullable=False)  # "HH:MM"
+    horario_confirmado: Mapped[bool] = mapped_column(Boolean, default=False)
     hora_fin: Mapped[str] = mapped_column(String(5), nullable=False)
     hora_resumen: Mapped[str] = mapped_column(String(5), default="19:00")
     dias_entrenamiento: Mapped[list[int]] = mapped_column(ARRAY(Integer), default=[0, 1, 2, 3, 4])  # 0=lunes … 6=domingo

@@ -70,14 +70,14 @@ def start_scheduler() -> None:
         enviar_confirmacion_horarios_job,
         "cron",
         day_of_week="sun",
-        hour=10,
+        hour=18,
         minute=0,
         id="confirmacion_horarios",
         max_instances=1,
         coalesce=True,
     )
     scheduler.start()
-    logger.info("Scheduler iniciado (tick cada 1 min, confirmación horarios domingos 10:00)")
+    logger.info("Scheduler iniciado (tick cada 1 min, confirmación horarios domingos 18:00)")
 
 
 def stop_scheduler() -> None:
