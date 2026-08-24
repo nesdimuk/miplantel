@@ -135,7 +135,10 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
 
         partes = []
         if hora:
-            partes.append(f"hora {hora}")
+            h, m = map(int, hora.split(":"))
+            ampm = "AM" if h < 12 else "PM"
+            h12 = h % 12 or 12
+            partes.append(f"hora {h12}:{m:02d} {ampm}")
         if dias:
             nombres_dias = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
             partes.append("días: " + ", ".join(nombres_dias[d] for d in sorted(dias)))
@@ -146,7 +149,9 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
         await marcar_horario_confirmado(db, cats_actualizadas)
         await enviar_texto_whatsapp(
             from_number,
-            "📅 Horarios actualizados:\n" + "\n".join(confirmaciones),
+            "📅 *Horarios actualizados:*\n"
+            + "\n".join(confirmaciones)
+            + "\n\n¿Es correcto? Si hay algún error escríbeme el horario de nuevo.",
         )
 
 

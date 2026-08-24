@@ -32,8 +32,11 @@ Las categorías disponibles en su club son: {categorias}
 
 Extrae los cambios de horario. Para cada categoría mencionada, devuelve:
 - "categoria": nombre exacto de la lista de categorías disponibles
-- "hora_inicio": hora en formato "HH:MM" (24h), o null si no se menciona
-- "dias": lista de enteros [0=lunes,1=martes,2=miércoles,3=jueves,4=viernes,5=sábado,6=domingo], o null si no se mencionan
+- "hora_inicio": hora en formato "HH:MM" (24h), o null si no se menciona.
+  Importante: convierte AM/PM correctamente (ej: "8:30 am" → "08:30", "8:30 pm" → "20:30",
+  "6 pm" → "18:00"). Si no se indica AM/PM y la hora es ≤ 12, asume AM (mañana).
+- "dias": lista de enteros [0=lunes,1=martes,2=miércoles,3=jueves,4=viernes,5=sábado,6=domingo], o null si no se mencionan.
+  "lunes a viernes" equivale a [0,1,2,3,4].
 
 Responde con un array JSON. Ejemplo:
 [{{"categoria": "Sub-13", "hora_inicio": "15:30", "dias": [1, 3]}}]
