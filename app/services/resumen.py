@@ -68,33 +68,28 @@ async def generar_resumen(db: AsyncSession, categoria: Categoria, fecha: date) -
 
 
 async def enviar_resumen(db: AsyncSession, categoria: Categoria, fecha: date) -> bool:
-    """Send the daily summary to staff, exactly once per day. True if sent by this call."""
-    if not await _claim_resumen(db, categoria.id, fecha):
-        return False
-
+    """Send a post-training page link to staff, exactly once per day. True if sent by this call."""
     r = await generar_resumen(db, categoria, fecha)
     if r["asistieron"] == 0:
         logger.debug("Resumen %s %s: sin asistencia, se omite", categoria.nombre, fecha)
         return False
-    # WhatsApp template parameters must not contain newlines → join lists with "; "
-    variables = [
-        categoria.nombre,
-        fecha.strftime("%d/%m/%Y"),
-        f"{r['asistieron']}/{r['total_jugadores']}",
-        "; ".join(r["inasistencias"]) or "Ninguna",
-        "; ".join(r["molestias"]) or "Ninguna",
-        "; ".join(r["sin_checkout"]) or "Ninguno",
-        str(r["rpe_promedio"]) if r["rpe_promedio"] is not None else "—",
-        str(r["carga_promedio"]) if r["carga_promedio"] is not None else "—",
-    ]
+
+    if not await _claim_resumen(db, categoria.id, fecha):
+        return False
+
+    from app.config import settings
+    link = (
+        f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}/post"
+        if settings.base_url else f"/r/{categoria.id}/{fecha.isoformat()}/post"
+    )
     await enviar_a_staff(
         db,
         club_id=categoria.club_id,
         tipo="resumen",
         categoria_id=categoria.id,
         jugador_id=None,
-        template="resumen_diario",
-        variables=variables,
+        template="semaforo_checkin",
+        variables=[categoria.nombre, link],
         canal="resumen",
     )
     logger.info("Resumen enviado: %s %s", categoria.nombre, fecha)
