@@ -494,3 +494,36 @@ details.inasistencias[open] summary::after { transform: rotate(90deg); }
   padding: .5rem .9rem .75rem;
   border-top: 1px solid var(--border);
 }
+
+/* ── WA PREVIEW BOX ── */
+.wa-preview-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1.25rem;
+}
+.wa-preview-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: .5rem;
+}
+.wa-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  resize: vertical;
+  outline: none;
+  transition: border-color .15s;
+}
+.wa-textarea:focus { border-color: var(--acento); }

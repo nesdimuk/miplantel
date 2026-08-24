@@ -73,9 +73,16 @@
     </ul>
     <div class="btn-copy-group">
       <button class="btn-wa btn-wa-sec" onclick="actualizarLista()">🔄 Actualizar lista</button>
-      <button class="btn-wa" id="btn-recordatorio-nombres" onclick="enviarRecordatorio()">
-        📲 Copiar lista para WhatsApp
-      </button>
+    </div>
+  </div>
+
+  {# ── MENSAJE WHATSAPP EDITABLE ── #}
+  <div class="wa-preview-box">
+    <div class="wa-preview-label">📲 Mensaje para el grupo</div>
+    <textarea id="wa-texto" class="wa-textarea" rows="8" spellcheck="false"></textarea>
+    <div class="btn-copy-group" style="margin-top:.5rem">
+      <button class="btn-wa btn-wa-sec" onclick="abrirWhatsApp()">📤 Abrir WhatsApp</button>
+      <button class="btn-wa" onclick="copiarMensaje()">📋 Copiar</button>
     </div>
   </div>
 
@@ -105,6 +112,31 @@
 </div>
 
 <script>
+function construirMensaje() {
+  const listaCo = document.getElementById('lista-sin-checkout');
+  const sinCo = listaCo
+    ? [...listaCo.querySelectorAll('li')].map(li => li.textContent.trim()).filter(n => n && !n.includes('🎉'))
+    : [];
+  const listaCi = document.getElementById('lista-sin-checkin');
+  const sinCi = listaCi
+    ? [...listaCi.querySelectorAll('li')].map(li => li.textContent.trim()).filter(Boolean)
+    : [];
+
+  if (!sinCo.length && !sinCi.length) {
+    return '⚽ {{ categoria.nombre }} — {{ fecha.strftime("%d/%m") }}\n\n✅ ¡Todos completaron check-in y check-out!';
+  }
+  let partes = ['⚽ {{ categoria.nombre }} — {{ fecha.strftime("%d/%m") }}\n'];
+  if (sinCi.length) partes.push(`❌ Sin check-in:\n${sinCi.join('\n')}`);
+  if (sinCo.length) partes.push(`⏳ Sin check-out:\n${sinCo.join('\n')}`);
+  partes.push(`\n📲 Formulario 👉 {{ checkin_url }}`);
+  return partes.join('\n\n');
+}
+
+function actualizarTextarea() {
+  const ta = document.getElementById('wa-texto');
+  if (ta) ta.value = construirMensaje();
+}
+
 async function actualizarLista() {
   try {
     const res = await fetch('/api/sin-checkout/{{ categoria.id }}/{{ fecha.isoformat() }}');
@@ -117,36 +149,31 @@ async function actualizarLista() {
         : '<li style="color:var(--muted)">¡Todos completaron! 🎉</li>';
     }
     if (titulo) titulo.textContent = `⏳ Sin check-out (${data.pendientes.length})`;
+    actualizarTextarea();
   } catch(e) {
     alert('Error al actualizar. Intenta de nuevo.');
   }
 }
 
-function enviarRecordatorio() {
-  const listaCo = document.getElementById('lista-sin-checkout');
-  const sinCo = listaCo
-    ? [...listaCo.querySelectorAll('li')].map(li => li.textContent.trim()).filter(n => n && !n.includes('🎉'))
-    : [];
-
-  const listaCi = document.getElementById('lista-sin-checkin');
-  const sinCi = listaCi
-    ? [...listaCi.querySelectorAll('li')].map(li => li.textContent.trim()).filter(Boolean)
-    : [];
-
-  if (!sinCo.length && !sinCi.length) {
-    alert('¡Todos completaron check-in y check-out! 🎉');
-    return;
-  }
-
-  let partes = [`⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}\n`];
-  if (sinCi.length) partes.push(`❌ Sin check-in:\n${sinCi.join('\n')}`);
-  if (sinCo.length) partes.push(`⏳ Sin check-out:\n${sinCo.join('\n')}`);
-  partes.push(`\n📲 Formulario 👉 {{ checkin_url }}`);
-
-  const texto = partes.join('\n\n');
-  navigator.clipboard?.writeText(texto).catch(() => {});
-  window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+function copiarMensaje() {
+  const ta = document.getElementById('wa-texto');
+  navigator.clipboard?.writeText(ta.value).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copiado';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => {
+    ta.select();
+    document.execCommand('copy');
+  });
 }
+
+function abrirWhatsApp() {
+  const ta = document.getElementById('wa-texto');
+  window.open('https://wa.me/?text=' + encodeURIComponent(ta.value), '_blank');
+}
+
+document.addEventListener('DOMContentLoaded', actualizarTextarea);
 </script>
 </body>
 </html>
