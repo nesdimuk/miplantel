@@ -55,6 +55,16 @@
   </div>
   {% endif %}
 
+  {# ── SIN CHECK-IN ── #}
+  {% if sin_checkin %}
+  <h2 class="section-title" id="titulo-sin-checkin">❌ Sin check-in ({{ sin_checkin|length }})</h2>
+  <div class="pendientes-box">
+    <ul class="pendientes-list" id="lista-sin-checkin">
+      {% for p in sin_checkin %}<li>{{ p.nombre }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   {# ── SIN CHECKOUT ── #}
   <h2 class="section-title" id="titulo-sin-checkout">⏳ Sin check-out ({{ sin_checkout|length }})</h2>
   <div class="pendientes-box">
@@ -64,7 +74,7 @@
     <div class="btn-copy-group">
       <button class="btn-wa btn-wa-sec" onclick="actualizarLista()">🔄 Actualizar lista</button>
       <button class="btn-wa" id="btn-recordatorio-nombres" onclick="enviarRecordatorio()">
-        📲 Recordatorio con nombres
+        📲 Copiar lista para WhatsApp
       </button>
     </div>
   </div>
@@ -113,15 +123,28 @@ async function actualizarLista() {
 }
 
 function enviarRecordatorio() {
-  const lista = document.getElementById('lista-sin-checkout');
-  const nombres = lista
-    ? [...lista.querySelectorAll('li')].map(li => li.textContent.trim()).filter(n => n && !n.includes('🎉'))
+  const listaCo = document.getElementById('lista-sin-checkout');
+  const sinCo = listaCo
+    ? [...listaCo.querySelectorAll('li')].map(li => li.textContent.trim()).filter(n => n && !n.includes('🎉'))
     : [];
-  if (!nombres.length) {
-    alert('¡Todos han hecho check-out! 🎉');
+
+  const listaCi = document.getElementById('lista-sin-checkin');
+  const sinCi = listaCi
+    ? [...listaCi.querySelectorAll('li')].map(li => li.textContent.trim()).filter(Boolean)
+    : [];
+
+  if (!sinCo.length && !sinCi.length) {
+    alert('¡Todos completaron check-in y check-out! 🎉');
     return;
   }
-  const texto = `⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}\n\n⏳ Falta el check-out de:\n${nombres.join('\n')}\n\n¡Regístralo aquí 👉 {{ checkout_url }}`;
+
+  let partes = [`⚽ {{ categoria.nombre }} — {{ fecha.strftime('%d/%m') }}\n`];
+  if (sinCi.length) partes.push(`❌ Sin check-in:\n${sinCi.join('\n')}`);
+  if (sinCo.length) partes.push(`⏳ Sin check-out:\n${sinCo.join('\n')}`);
+  partes.push(`\n📲 Formulario 👉 {{ checkin_url }}`);
+
+  const texto = partes.join('\n\n');
+  navigator.clipboard?.writeText(texto).catch(() => {});
   window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
 }
 </script>

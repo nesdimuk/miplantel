@@ -275,6 +275,12 @@ async def informe_post(
         for jid in asistentes_ids if jid not in checkout_por_jugador and jid in jugadores
     ]
 
+    sin_checkin = [
+        {"nombre": f"{j.nombre} {j.apellido}"}
+        for jid, j in jugadores.items() if jid not in asistentes_ids
+    ]
+    sin_checkin.sort(key=lambda x: x["nombre"])
+
     rpes = [r["rpe"] for r in con_checkout if r["rpe"] is not None]
     rpe_promedio = round(mean(rpes), 1) if rpes else None
     cargas = [r["carga"] for r in con_checkout if r["carga"] is not None]
@@ -284,7 +290,7 @@ async def informe_post(
 
     from app.config import settings
     base = settings.base_url.rstrip("/") if settings.base_url else ""
-    checkout_url = f"{base}/f/{club.slug}/{categoria.nombre}"
+    form_url = f"{base}/f/{club.slug}/{categoria.nombre}"
 
     return templates.TemplateResponse("informe_post.html", {
         "request": request,
@@ -293,11 +299,13 @@ async def informe_post(
         "fecha": fecha,
         "con_checkout": con_checkout,
         "sin_checkout": sin_checkout,
+        "sin_checkin": sin_checkin,
         "total_asistentes": len(asistentes_ids),
         "rpe_promedio": rpe_promedio,
         "carga_promedio": carga_promedio,
         "molestias_post": molestias_post,
-        "checkout_url": checkout_url,
+        "checkout_url": form_url,
+        "checkin_url": form_url,
     })
 
 
