@@ -73,6 +73,9 @@ async def enviar_resumen(db: AsyncSession, categoria: Categoria, fecha: date) ->
         return False
 
     r = await generar_resumen(db, categoria, fecha)
+    if r["asistieron"] == 0:
+        logger.debug("Resumen %s %s: sin asistencia, se omite", categoria.nombre, fecha)
+        return False
     # WhatsApp template parameters must not contain newlines → join lists with "; "
     variables = [
         categoria.nombre,

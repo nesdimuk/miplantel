@@ -48,10 +48,12 @@ async def hora_disparo_semaforo(db: AsyncSession, cat: Categoria, fecha: date) -
         )
     )
     valores = [r[0] for r in result.all()]
-    if valores:
+    if len(valores) >= 3:
         modo = Counter(valores).most_common(1)[0][0]
         return _min_to_hhmm(_hhmm_to_min(modo) - 5)
-    return cat.hora_inicio
+    if valores:  # 1-2 check-ins: hay señal pero insuficiente, esperar más
+        return "23:59"
+    return cat.hora_inicio  # sin check-ins: usar hora configurada como referencia
 
 
 UMBRAL_ROJO_BIENESTAR = 3.5
