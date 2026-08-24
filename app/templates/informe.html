@@ -37,7 +37,7 @@
   </div>
   {% endif %}
 
-  {# ── STATS + BIENESTAR COLAPSABLE ── #}
+  {# ── STATS + BIENESTAR ── #}
   {% set rojos = registros | selectattr("estado", "eq", "rojo") | list %}
   {% if rojos and conteo.rojo > 0 %}
   <div class="aviso-bienestar" id="aviso-bienestar">
@@ -72,16 +72,13 @@
         <span class="leyenda-item inactivo">🙂 Ánimo <em>(no entra al índice)</em></span>
       </div>
     </div>
-
     {% for r in registros %}
     <div class="card">
       <div class="card-bar {{ r.estado }}"></div>
       <div class="card-body">
         <div class="card-top">
           <span class="card-nombre">{{ r.nombre }}</span>
-          <span class="card-score {{ r.estado }}">
-            {% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}
-          </span>
+          <span class="card-score {{ r.estado }}">{% if r.bienestar %}{{ r.bienestar }}{% else %}—{% endif %}</span>
         </div>
         <div class="card-chips">
           {% if r.sueno   is not none %}<span class="chip">😴 {{ r.sueno }}</span>{% endif %}
@@ -92,9 +89,6 @@
           {% if r.hora_inicio %}<span class="chip">⏰ {{ r.hora_inicio }}</span>{% endif %}
           {% if r.molestia_previa %}<span class="chip chip-molestia">🩹 {{ r.molestia_severidad or 'molestia' }}{% if r.molestia_zona %} — {{ r.molestia_zona }}{% endif %}</span>{% endif %}
         </div>
-        {% if r.carga %}
-        <div class="card-carga">Carga: <strong>{{ r.carga }}</strong> (RPE {{ r.rpe }} × {{ r.duracion }} min)</div>
-        {% endif %}
       </div>
     </div>
     {% endfor %}
@@ -108,80 +102,15 @@
   </div>
   {% endif %}
 
-  {# ── SPARKLINE ASISTENCIA 7D ── #}
-  {% set max_val = asistencia_7d | max if asistencia_7d | max > 0 else 1 %}
-  <div class="sparkline-wrap">
-    <div class="sparkline-label">Asistencia últimos 7 días</div>
-    <div class="sparkline">
-      {% for val in asistencia_7d %}
-      <div class="spark-bar {% if loop.last %}today{% endif %}"
-           style="height: {{ [[((val / max_val * 34)|round)|int, 3]|max, 34]|min }}px"
-           title="{{ dias_7_labels[loop.index0] }}: {{ val }}"></div>
-      {% endfor %}
-    </div>
-    <div style="display:flex;gap:3px;margin-top:3px;">
-      {% for lbl in dias_7_labels %}
-      <div class="spark-day" style="flex:1">{{ lbl }}</div>
-      {% endfor %}
-    </div>
-  </div>
-
-  {# ── PENDIENTES CHECK-IN ── #}
+  {# ── SIN CHECK-IN (colapsado) ── #}
   {% if pendientes %}
-  <h2 class="section-title">⏳ Sin check-in ({{ pendientes|length }})</h2>
-  <div class="pendientes-box">
-    <ul class="pendientes-list">
-      {% for p in pendientes %}<li>{{ p.nombre }}</li>{% endfor %}
-    </ul>
-    <div class="btn-copy-group">
-      <a class="btn-wa" target="_blank"
-         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\nYa registraron check-in:\n' ~ registros|map(attribute='nombre')|join(', ') ~ '\n\n¡Súmate! Regístrate aquí 👉 ' ~ checkin_url)|urlencode }}">
-        📲 Recordatorio con nombres
-      </a>
-      <a class="btn-wa btn-wa-sec" target="_blank"
-         href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\n' ~ registros|length|string ~ ' jugadores ya hicieron su check-in.\n\n¡Súmate! Regístrate aquí 👉 ' ~ checkin_url)|urlencode }}">
-        🕵️ Recordatorio anónimo
-      </a>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if not registros %}
-  <p class="empty">Aún no hay check-ins para hoy.</p>
-  {% endif %}
-
-  {# ── SIN CHECKOUT (post-entrenamiento) ── #}
-  {% if sin_checkout %}
-  <details class="inasistencias" id="sec-sin-checkout">
-    <summary>Sin check-out ({{ sin_checkout|length }})</summary>
+  <details class="inasistencias" id="sec-pendientes">
+    <summary>⏳ Sin check-in ({{ pendientes|length }} / {{ total_activos }})</summary>
     <div class="pendientes-box" style="margin-top:.5rem">
-      <ul class="pendientes-list">
-        {% for p in sin_checkout %}<li>{{ p.nombre }}</li>{% endfor %}
+      <ul class="pendientes-list" id="lista-pendientes">
+        {% for p in pendientes %}<li>{{ p.nombre }}</li>{% endfor %}
       </ul>
-      <div class="btn-copy-group">
-        <a class="btn-wa" target="_blank"
-           href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\nYa hicieron check-out:\n' ~ con_checkout|map(attribute='nombre')|join(', ') ~ '\n\n¡Súmate! Regístralo aquí 👉 ' ~ checkin_url)|urlencode }}">
-          📲 Recordatorio con nombres
-        </a>
-        <a class="btn-wa btn-wa-sec" target="_blank"
-           href="https://wa.me/?text={{ ('⚽ ' ~ categoria.nombre ~ ' — ' ~ fecha.strftime('%d/%m') ~ '\n\n' ~ con_checkout|length|string ~ ' jugadores ya hicieron su check-out.\n\n¡Súmate! Regístralo aquí 👉 ' ~ checkin_url)|urlencode }}">
-          🕵️ Recordatorio anónimo
-        </a>
-      </div>
     </div>
-  </details>
-  {% endif %}
-
-  {# ── CHECK-OUTS RECIBIDOS ── #}
-  {% if con_checkout %}
-  <details class="inasistencias" id="sec-con-checkout">
-    <summary>Check-outs recibidos ({{ con_checkout|length }})</summary>
-    {% for co in con_checkout %}
-    <div class="inasist-row">
-      <div class="inasist-nombre">{{ co.nombre }}</div>
-      <div class="inasist-motivo">RPE {{ co.rpe }} · {{ co.duracion }} min · carga {{ co.carga }}</div>
-    </div>
-    {% endfor %}
   </details>
   {% endif %}
 
@@ -198,19 +127,80 @@
   </details>
   {% endif %}
 
-</div>{# /wrap #}
+  {# ── MENSAJE PARA EL GRUPO ── #}
+  <div class="wa-preview-box">
+    <div class="wa-preview-label">📲 Mensaje para el grupo</div>
+    <textarea id="wa-texto" class="wa-textarea" rows="7" spellcheck="false"></textarea>
+    <div class="btn-copy-group" style="margin-top:.5rem">
+      <button class="btn-wa btn-wa-sec" onclick="window.location.reload()">🔄 Actualizar</button>
+      <button class="btn-wa" id="btn-copiar" onclick="copiarMensaje()">📋 Copiar</button>
+    </div>
+  </div>
+
+  {# ── SIN CHECKOUT (post-entrenamiento) ── #}
+  {% if sin_checkout %}
+  <details class="inasistencias" id="sec-sin-checkout">
+    <summary>Sin check-out ({{ sin_checkout|length }})</summary>
+    <div class="pendientes-box" style="margin-top:.5rem">
+      <ul class="pendientes-list">{% for p in sin_checkout %}<li>{{ p.nombre }}</li>{% endfor %}</ul>
+    </div>
+  </details>
+  {% endif %}
+
+  {% if con_checkout %}
+  <details class="inasistencias" id="sec-con-checkout">
+    <summary>Check-outs recibidos ({{ con_checkout|length }})</summary>
+    {% for co in con_checkout %}
+    <div class="inasist-row">
+      <div class="inasist-nombre">{{ co.nombre }}</div>
+      <div class="inasist-motivo">RPE {{ co.rpe }} · {{ co.duracion }} min · carga {{ co.carga }}</div>
+    </div>
+    {% endfor %}
+  </details>
+  {% endif %}
+
+</div>
 
 <script>
+// ── Textarea mensaje ─────────────────────────────────────────────────────────
+const conCheckin = [{% for r in registros %}"{{ r.nombre }}"{% if not loop.last %},{% endif %}{% endfor %}];
+const sinCheckin = [{% for p in pendientes %}"{{ p.nombre }}"{% if not loop.last %},{% endif %}{% endfor %}];
+const checkinUrl = "{{ checkin_url }}";
+const catNombre  = "{{ categoria.nombre }}";
+const fechaStr   = "{{ fecha.strftime('%d/%m') }}";
+
+function construirMensaje() {
+  let partes = [`⚽ ${catNombre} — ${fechaStr}\n`];
+  if (conCheckin.length) partes.push(`✅ Ya hicieron check-in (${conCheckin.length}):\n${conCheckin.join('\n')}`);
+  partes.push(`\n📲 Súmate aquí 👉 ${checkinUrl}`);
+  return partes.join('\n\n');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('wa-texto').value = construirMensaje();
+});
+
+function copiarMensaje() {
+  const ta = document.getElementById('wa-texto');
+  const btn = document.getElementById('btn-copiar');
+  navigator.clipboard?.writeText(ta.value).then(() => {
+    btn.textContent = '✅ Copiado';
+    setTimeout(() => btn.textContent = '📋 Copiar', 2500);
+  }).catch(() => {
+    ta.select();
+    document.execCommand('copy');
+    btn.textContent = '✅ Copiado';
+    setTimeout(() => btn.textContent = '📋 Copiar', 2500);
+  });
+}
 
 // ── Aviso bienestar ──────────────────────────────────────────────────────────
 const avisoKey = "visto_bienestar_{{ categoria_id }}_{{ fecha_str }}";
 const aviso = document.getElementById("aviso-bienestar");
 const grupo = document.getElementById("sec-grupo");
-
 if (aviso) {
-  if (localStorage.getItem(avisoKey)) {
-    aviso.style.display = "none";
-  } else {
+  if (localStorage.getItem(avisoKey)) { aviso.style.display = "none"; }
+  else {
     aviso.addEventListener("click", () => {
       if (grupo) grupo.open = true;
       aviso.classList.add("aviso-visto");
@@ -229,11 +219,9 @@ if (grupo) {
   });
 }
 
-// ── Service Worker ────────────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/static/sw.js").catch(() => {});
 }
 </script>
-
 </body>
 </html>
