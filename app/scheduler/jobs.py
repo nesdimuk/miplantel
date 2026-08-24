@@ -18,6 +18,7 @@ from app.db.models import Categoria, Jugador
 from app.services import recordatorios as recordatorios_svc
 from app.services import resumen as resumen_svc
 from app.services import semaforo as semaforo_svc
+from app.services.horarios_semana import enviar_confirmacion_horarios_job
 
 logger = logging.getLogger("scheduler")
 
@@ -64,8 +65,19 @@ async def tick() -> None:
 
 def start_scheduler() -> None:
     scheduler.add_job(tick, "interval", minutes=1, id="tick", max_instances=1, coalesce=True)
+    # Sunday at 10:00 local time: ask coaches to confirm the week's schedule
+    scheduler.add_job(
+        enviar_confirmacion_horarios_job,
+        "cron",
+        day_of_week="sun",
+        hour=10,
+        minute=0,
+        id="confirmacion_horarios",
+        max_instances=1,
+        coalesce=True,
+    )
     scheduler.start()
-    logger.info("Scheduler iniciado (tick cada 1 min)")
+    logger.info("Scheduler iniciado (tick cada 1 min, confirmación horarios domingos 10:00)")
 
 
 def stop_scheduler() -> None:

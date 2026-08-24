@@ -102,6 +102,16 @@ async def _procesar_mensaje_entrante(db: AsyncSession, from_number: str, texto: 
         )
         return
 
+    # Confirmation of unchanged schedule (reply to Sunday message)
+    if texto.lower().strip() in ("si", "sí", "ok", "mismo", "confirmo", "igual", "se mantiene"):
+        from app.services.horarios_semana import _formato_horario
+        resumen = "\n".join(_formato_horario(c) for c in sorted(categorias, key=lambda c: c.nombre))
+        await enviar_texto_whatsapp(
+            from_number,
+            f"✅ *Horarios confirmados para esta semana*\n\n{resumen}",
+        )
+        return
+
     cambios = await parsear_horario(texto, nombres_categorias)
     if not cambios:
         return
