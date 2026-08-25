@@ -16,7 +16,6 @@ from sqlalchemy.orm import joinedload
 from app.db.engine import AsyncSessionLocal
 from app.db.models import Categoria, Jugador, SesionDia
 from app.services import recordatorios as recordatorios_svc
-from app.services import resumen as resumen_svc
 from app.services import semaforo as semaforo_svc
 from app.services.horarios_semana import enviar_confirmacion_horarios_job
 
@@ -63,9 +62,8 @@ async def tick() -> None:
                         )).scalar_one()
                         await semaforo_svc.enviar_semaforo(db, cat, hoy, forzado=True, total_activos=total_activos)
 
-                # Resumen: solo si ya se envió el semáforo (entrenamiento ocurrió)
-                if sesion and sesion.semaforo_enviado and hhmm >= cat.hora_resumen:
-                    await resumen_svc.enviar_resumen(db, cat, hoy)
+                # Resumen post y dashboard: disparados por APScheduler +1h/+2h del 3er checkout
+                # (ver app/api/routers/checkout.py _schedule_post_training)
 
             await db.commit()
         except Exception:

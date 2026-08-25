@@ -11,7 +11,7 @@ TEMPLATES: dict[str, str] = {
     # Formato unificado: título corto + link al informe.
     # El detalle completo vive en la página web — WhatsApp es solo el ping.
     "semaforo_checkin": (
-        "⚠️ *Pre-entrenamiento · {{1}}*\n"
+        "🟡 *Semáforo · {{1}}*\n"
         "📊 {{2}}"
     ),
     "alerta_bienestar_rojo": (
