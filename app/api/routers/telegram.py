@@ -140,6 +140,10 @@ async def _handle_start(db: AsyncSession, chat_id: int, payload: str) -> None:
         await _tg_reply(chat_id, "❌ Staff no encontrado.")
         return
 
+    if staff.telegram_chat_id == chat_id:
+        # Ya estaba vinculado — silencio para no spamear
+        return
+
     staff.telegram_chat_id = chat_id
     await db.commit()
 
