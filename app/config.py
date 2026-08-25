@@ -24,6 +24,15 @@ class Settings(BaseSettings):
     whatsapp_verify_token: str = "assist_verify_token"
     whatsapp_api_version: str = "v19.0"
 
+    # Telegram Bot
+    telegram_bot_token: str = ""
+    telegram_webhook_secret: str = "miplantel_tg_secret"  # X-Telegram-Bot-Api-Secret-Token
+    # Nombre público del bot (sin @), para generar deep links en el admin
+    telegram_bot_username: str = "MiPlantelBot"
+
+    # Proveedor de mensajería activo: whatsapp | telegram | both
+    messaging_provider: Literal["whatsapp", "telegram", "both"] = "whatsapp"
+
     # Admin
     admin_password: str = "admin123"
 
@@ -36,7 +45,13 @@ class Settings(BaseSettings):
 
     @property
     def use_fake_messaging(self) -> bool:
-        return self.environment in ("development", "test") or not self.whatsapp_token
+        if self.environment in ("development", "test"):
+            return True
+        if self.messaging_provider == "telegram":
+            return not self.telegram_bot_token
+        if self.messaging_provider == "both":
+            return not self.whatsapp_token and not self.telegram_bot_token
+        return not self.whatsapp_token  # whatsapp default
 
 
 settings = Settings()

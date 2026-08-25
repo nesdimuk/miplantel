@@ -72,6 +72,7 @@ class Staff(Base):
     club_id: Mapped[int] = mapped_column(ForeignKey("mp_clubes.id"), nullable=False, index=True)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     telefono_whatsapp: Mapped[str] = mapped_column(String(20), nullable=False)
+    telegram_chat_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     rol: Mapped[str] = mapped_column(String(20), nullable=False)  # DT / PF / ADMIN / COORD
     recibe_alertas: Mapped[bool] = mapped_column(Boolean, default=True)
     recibe_resumen: Mapped[bool] = mapped_column(Boolean, default=True)

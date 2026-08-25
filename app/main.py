@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.api.routers import admin, checkin, checkout, coordinador, dashboards, forms, informe, registro, webhooks
+from app.api.routers import admin, checkin, checkout, coordinador, dashboards, forms, informe, registro, telegram, webhooks
 from app.config import settings
 from app.scheduler.jobs import start_scheduler, stop_scheduler
 
@@ -43,6 +43,7 @@ app.include_router(dashboards.router)
 app.include_router(registro.router)
 app.include_router(informe.router)
 app.include_router(coordinador.router)
+app.include_router(telegram.router)
 
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 
