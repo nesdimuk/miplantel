@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.config import settings
 from app.db.engine import get_db
 from app.db.models import Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckinCreate, CheckinResponse
 from app.services.gamificacion import get_checkin_feedback
 from app.services import bienestar
+from app.services.alertas import enviar_a_staff
 from app.services.notificaciones_post import enviar_primer_aviso
 
 router = APIRouter()
@@ -66,16 +68,29 @@ async def create_checkin(payload: CheckinCreate, db: AsyncSession = Depends(get_
 
     # Staff alerts & semáforo — must never break the player's registration
     try:
+        categoria = await db.get(Categoria, jugador.categoria_id)
+
         if payload.asistencia:
             # Solo alerta tardía en rojo — el resto vive en el informe web
             await bienestar.revisar_bienestar(db, jugador, payload.fecha)
 
-        categoria = await db.get(Categoria, jugador.categoria_id)
-
-        # Trigger 1: 3rd check-in → send primer aviso to coach
-        # Semáforo fires via scheduler tick at hora_disparo_semaforo(), not here
-        if nuevo_total == 3:
-            await enviar_primer_aviso(db, categoria, payload.fecha)
+            # Trigger 1: 3rd check-in → send primer aviso to coach
+            # Semáforo fires via scheduler tick at hora_disparo_semaforo(), not here
+            if nuevo_total == 3:
+                await enviar_primer_aviso(db, categoria, payload.fecha)
+        else:
+            # Jugador no asiste → alerta inmediata al staff
+            link = f"{settings.base_url}/r/{categoria.id}/{payload.fecha.isoformat()}"
+            motivo = payload.motivo_inasistencia or "sin motivo"
+            await enviar_a_staff(
+                db,
+                club_id=categoria.club_id,
+                tipo="alerta_inasistencia",
+                categoria_id=categoria.id,
+                jugador_id=jugador.id,
+                template="alerta_inasistencia",
+                variables=[f"{jugador.nombre} {jugador.apellido} — {motivo}", link],
+            )
     except Exception:
         logger.exception("Error enviando alertas de check-in (jugador_id=%s)", jugador.id)
 
