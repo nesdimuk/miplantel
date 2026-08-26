@@ -44,14 +44,13 @@
   {# ── BIENESTAR ── #}
   <div class="dia-seccion-titulo">BIENESTAR PRE-ENTRENO</div>
   <div class="dia-grid">
-    <div class="dia-card {% if bienestar_promedio is not none and bienestar_promedio < 3.5 %}dia-card-rojo{% elif bienestar_promedio is not none and bienestar_promedio < 4.5 %}dia-card-naranja{% elif bienestar_promedio is not none and bienestar_promedio < 5.5 %}dia-card-amarillo{% else %}dia-card-verde{% endif %}">
+    <div class="dia-card {% if bienestar_promedio is not none and bienestar_promedio < 3.5 %}dia-card-rojo{% elif bienestar_promedio is not none and bienestar_promedio < 5.0 %}dia-card-amarillo{% else %}dia-card-verde{% endif %}">
       <div class="dia-num">{{ bienestar_promedio if bienestar_promedio is not none else '—' }}</div>
       <div class="dia-label">índice promedio</div>
     </div>
-    {% if conteo.rojo %}   <div class="dia-card dia-card-rojo"><div class="dia-num">{{ conteo.rojo }}</div><div class="dia-label">en rojo</div></div>{% endif %}
-    {% if conteo.naranja %}<div class="dia-card dia-card-naranja"><div class="dia-num">{{ conteo.naranja }}</div><div class="dia-label">en naranja</div></div>{% endif %}
+    {% if conteo.rojo %}    <div class="dia-card dia-card-rojo"><div class="dia-num">{{ conteo.rojo }}</div><div class="dia-label">en rojo</div></div>{% endif %}
     {% if conteo.amarillo %}<div class="dia-card dia-card-amarillo"><div class="dia-num">{{ conteo.amarillo }}</div><div class="dia-label">en amarillo</div></div>{% endif %}
-    {% if conteo.verde %}  <div class="dia-card dia-card-verde"><div class="dia-num">{{ conteo.verde }}</div><div class="dia-label">en verde</div></div>{% endif %}
+    {% if conteo.verde %}   <div class="dia-card dia-card-verde"><div class="dia-num">{{ conteo.verde }}</div><div class="dia-label">en verde</div></div>{% endif %}
   </div>
 
   {# ── CARGA ── #}

@@ -109,7 +109,6 @@
     .hooper-val { font-size: 1.1rem; font-weight: 700; }
     .hooper-val.verde  { color: #2e7d32; }
     .hooper-val.amarillo { color: #f57f17; }
-    .hooper-val.naranja { color: #e65100; }
     .hooper-val.rojo   { color: #c62828; }
     .hooper-val.sin    { color: var(--muted); }
 
@@ -192,12 +191,10 @@
         <div class="hooper-row">
           <div class="hooper-label">Hooper Index promedio</div>
           {% if r.hooper %}
-            {% if r.hooper >= 5.5 %}
+            {% if r.hooper >= 5.0 %}
               <div class="hooper-val verde">{{ r.hooper }} 🟢</div>
-            {% elif r.hooper >= 4.5 %}
-              <div class="hooper-val amarillo">{{ r.hooper }} 🟡</div>
             {% elif r.hooper >= 3.5 %}
-              <div class="hooper-val naranja">{{ r.hooper }} 🟠</div>
+              <div class="hooper-val amarillo">{{ r.hooper }} 🟡</div>
             {% else %}
               <div class="hooper-val rojo">{{ r.hooper }} 🔴</div>
             {% endif %}

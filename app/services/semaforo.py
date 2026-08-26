@@ -15,9 +15,8 @@ logger = logging.getLogger("services.semaforo")
 
 # Wellness score = (sueño + energía + ánimo + dolor invertido) / 4, escala 1-7
 ESTADOS = [
-    (5.5, "🟢 VERDE"),
-    (4.5, "🟡 AMARILLO"),
-    (3.5, "🟠 NARANJA"),
+    (5.0, "🟢 VERDE"),
+    (3.5, "🟡 AMARILLO"),
     (0.0, "🔴 ROJO"),
 ]
 

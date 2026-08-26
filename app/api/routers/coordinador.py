@@ -123,9 +123,8 @@ async def coord_dashboard(
         pct_checkin = round(checkins_hoy / total_jug * 100) if total_jug else 0
         pct_checkout = round(checkouts_hoy / checkins_hoy * 100) if checkins_hoy else 0
 
-        semaforo = "🟢" if hooper_prom and hooper_prom >= 5.5 else \
-                   "🟡" if hooper_prom and hooper_prom >= 4.5 else \
-                   "🟠" if hooper_prom and hooper_prom >= 3.5 else \
+        semaforo = "🟢" if hooper_prom and hooper_prom >= 5.0 else \
+                   "🟡" if hooper_prom and hooper_prom >= 3.5 else \
                    "🔴" if hooper_prom else "⬜"
 
         resumen.append({

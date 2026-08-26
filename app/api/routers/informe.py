@@ -14,12 +14,11 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 _ESTADOS = [
-    (5.5, "verde"),
-    (4.5, "amarillo"),
-    (3.5, "naranja"),
+    (5.0, "verde"),
+    (3.5, "amarillo"),
     (0.0, "rojo"),
 ]
-_ORDEN = {"rojo": 0, "naranja": 1, "amarillo": 2, "verde": 3, "sin_datos": 4}
+_ORDEN = {"rojo": 0, "amarillo": 1, "verde": 2, "sin_datos": 3}
 
 
 def _bienestar(c: Checkin):
@@ -137,7 +136,7 @@ async def informe_diario(
     ]
 
     # Conteo por estado
-    conteo = {"verde": 0, "amarillo": 0, "naranja": 0, "rojo": 0, "sin_datos": 0}
+    conteo = {"verde": 0, "amarillo": 0, "rojo": 0, "sin_datos": 0}
     for r in registros:
         conteo[r["estado"]] += 1
 
@@ -346,7 +345,7 @@ async def informe_dia(
 
     # Bienestar promedio
     scores = []
-    conteo = {"verde": 0, "amarillo": 0, "naranja": 0, "rojo": 0}
+    conteo = {"verde": 0, "amarillo": 0, "rojo": 0}
     molestias_pre = []
     for ci, jug in asistentes:
         b = _bienestar(ci)
@@ -385,7 +384,7 @@ async def informe_dia(
             })
 
     # Ficha individual por jugador (para expandible)
-    _ORDEN_DIA = {"rojo": 0, "naranja": 1, "amarillo": 2, "verde": 3, "sin_datos": 4}
+    _ORDEN_DIA = {"rojo": 0, "amarillo": 1, "verde": 2, "sin_datos": 3}
     fichas = []
     for ci, jug in asistentes:
         b = _bienestar(ci)
