@@ -205,6 +205,48 @@ async def datos_categoria(db: AsyncSession, categoria: Categoria, hasta: date) -
     if not insights:
         insights.append("Aún no hay datos suficientes para generar insights.")
 
+    # ---- Resumen semanal (tabla semana a semana) ----
+    from collections import defaultdict as _dd
+    _sem_checkins: dict = _dd(list)
+    _sem_checkouts: dict = _dd(list)
+    for c in asistencias:
+        _sem_checkins[c.fecha.isocalendar()[:2]].append(c)
+    for c in checkouts:
+        _sem_checkouts[c.fecha.isocalendar()[:2]].append(c)
+
+    def _sem_label(year, week):
+        # lunes de esa semana ISO
+        import datetime as _dt
+        lunes = _dt.date.fromisocalendar(year, week, 1)
+        domingo = lunes + timedelta(days=6)
+        return f"S{week} ({lunes.strftime('%d/%m')}–{domingo.strftime('%d/%m')})"
+
+    def _hooper_val(cs):
+        vals = [(c.sueno + c.energia + (8 - c.dolor_pre) + (8 - c.estres)) / 4
+                for c in cs if None not in (c.sueno, c.energia, c.dolor_pre, c.estres)]
+        return round(sum(vals) / len(vals), 1) if vals else None
+
+    all_weeks = sorted(set(list(_sem_checkins.keys()) + list(_sem_checkouts.keys())))
+    resumen_semanal = []
+    for (yr, wk) in all_weeks:
+        cs = _sem_checkins[(yr, wk)]
+        cos = _sem_checkouts[(yr, wk)]
+        hooper_s = _hooper_val(cs)
+        carga_s = round(sum(c.carga for c in cos) / len(cos)) if cos else None
+        verde = sum(1 for c in cs if _hooper_val([c]) is not None and _hooper_val([c]) >= 5.0)
+        amarillo = sum(1 for c in cs if _hooper_val([c]) is not None and 3.5 <= _hooper_val([c]) < 5.0)
+        rojo = sum(1 for c in cs if _hooper_val([c]) is not None and _hooper_val([c]) < 3.5)
+        resumen_semanal.append({
+            "label": _sem_label(yr, wk),
+            "asistentes": len(cs),
+            "checkouts": len(cos),
+            "hooper": hooper_s,
+            "carga_prom": carga_s,
+            "verde": verde,
+            "amarillo": amarillo,
+            "rojo": rojo,
+        })
+
     return {
         "desde": desde,
         "hasta": hasta,
@@ -223,4 +265,5 @@ async def datos_categoria(db: AsyncSession, categoria: Categoria, hasta: date) -
         "total_checkins": len(checkins),
         "total_checkouts": len(checkouts),
         "insights": insights,
+        "resumen_semanal": resumen_semanal,
     }

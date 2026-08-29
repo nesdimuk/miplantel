@@ -70,6 +70,38 @@
     <h2>💡 Insights</h2>
     {% for i in d.insights %}<div class="insight">{{ i }}</div>{% endfor %}
 
+    <h2>📅 Semana a semana</h2>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <tr>
+          <th>Semana</th>
+          <th class="num">Asistentes</th>
+          <th class="num">Check-outs</th>
+          <th class="num">Hooper prom.</th>
+          <th class="num">Carga prom.</th>
+          <th class="num">🟢</th>
+          <th class="num">🟡</th>
+          <th class="num">🔴</th>
+        </tr>
+        {% for s in d.resumen_semanal %}
+        <tr>
+          <td>{{ s.label }}</td>
+          <td class="num">{{ s.asistentes }}</td>
+          <td class="num">{{ s.checkouts }}</td>
+          <td class="num">
+            {% if s.hooper is not none %}
+              <span class="pill {{ 'ok' if s.hooper >= 5.0 else ('warn' if s.hooper >= 3.5 else 'bad') }}">{{ s.hooper }}</span>
+            {% else %}<span class="muted">—</span>{% endif %}
+          </td>
+          <td class="num">{{ s.carga_prom if s.carga_prom is not none else '—' }}</td>
+          <td class="num">{% if s.verde %}<strong style="color:#2e7d32">{{ s.verde }}</strong>{% else %}—{% endif %}</td>
+          <td class="num">{% if s.amarillo %}<strong style="color:#f57f17">{{ s.amarillo }}</strong>{% else %}—{% endif %}</td>
+          <td class="num">{% if s.rojo %}<strong style="color:#c62828">{{ s.rojo }}</strong>{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
     <h2>📊 Variables por microciclo</h2>
     <div class="card">
       <!-- Controles -->
