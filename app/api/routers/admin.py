@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date, timedelta, time as dtime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
@@ -82,10 +82,102 @@ async def logout():
 async def admin_home(request: Request, db: AsyncSession = Depends(get_db)):
     scope = admin_scope(request)
     if scope != SUPER_SCOPE:
-        # club admin: directo a su club
         return RedirectResponse(f"/admin/{scope.removeprefix('club:')}", status_code=303)
+
+    from sqlalchemy import func as sqlfunc
     clubes = (await db.execute(select(Club).order_by(Club.nombre))).scalars().all()
-    return templates.TemplateResponse(request, "admin/clubes.html", {"clubes": clubes})
+    hoy = datetime.now().date()
+    hace7 = hoy - timedelta(days=6)
+
+    filas = []
+    for club in clubes:
+        # Jugadores activos
+        n_jugadores = (await db.execute(
+            select(sqlfunc.count(Jugador.id))
+            .join(Categoria, Jugador.categoria_id == Categoria.id)
+            .where(Categoria.club_id == club.id, Jugador.activo == True)  # noqa: E712
+        )).scalar_one()
+
+        # Categorías activas
+        n_cats = (await db.execute(
+            select(sqlfunc.count(Categoria.id))
+            .where(Categoria.club_id == club.id, Categoria.activo == True)  # noqa: E712
+        )).scalar_one()
+
+        # Check-ins de hoy
+        checkins_hoy = (await db.execute(
+            select(sqlfunc.count(Checkin.id))
+            .join(Jugador, Checkin.jugador_id == Jugador.id)
+            .join(Categoria, Jugador.categoria_id == Categoria.id)
+            .where(Categoria.club_id == club.id, Checkin.fecha == hoy, Checkin.asistencia == True)  # noqa: E712
+        )).scalar_one()
+
+        # Check-outs de hoy
+        checkouts_hoy = (await db.execute(
+            select(sqlfunc.count(Checkout.id))
+            .join(Jugador, Checkout.jugador_id == Jugador.id)
+            .join(Categoria, Jugador.categoria_id == Categoria.id)
+            .where(Categoria.club_id == club.id, Checkout.fecha == hoy)
+        )).scalar_one()
+
+        # Última actividad (último check-in en cualquier fecha)
+        ultima_fecha = (await db.execute(
+            select(sqlfunc.max(Checkin.fecha))
+            .join(Jugador, Checkin.jugador_id == Jugador.id)
+            .join(Categoria, Jugador.categoria_id == Categoria.id)
+            .where(Categoria.club_id == club.id)
+        )).scalar_one()
+
+        # Staff Telegram vinculado
+        staff_total = (await db.execute(
+            select(sqlfunc.count(Staff.id))
+            .where(Staff.club_id == club.id, Staff.activo == True)  # noqa: E712
+        )).scalar_one()
+        staff_tg = (await db.execute(
+            select(sqlfunc.count(Staff.id))
+            .where(Staff.club_id == club.id, Staff.activo == True, Staff.telegram_chat_id.isnot(None))  # noqa: E712
+        )).scalar_one()
+
+        # Alertas fallidas últimos 7 días
+        alertas_fallidas = (await db.execute(
+            select(sqlfunc.count(AlertaLog.id))
+            .where(
+                AlertaLog.categoria_id.in_(
+                    select(Categoria.id).where(Categoria.club_id == club.id)
+                ),
+                AlertaLog.estado_envio == "failed",
+                AlertaLog.created_at >= datetime.combine(hace7, dtime.min),
+            )
+        )).scalar_one()
+
+        # Actividad últimos 7 días
+        checkins_7d = (await db.execute(
+            select(sqlfunc.count(Checkin.id))
+            .join(Jugador, Checkin.jugador_id == Jugador.id)
+            .join(Categoria, Jugador.categoria_id == Categoria.id)
+            .where(Categoria.club_id == club.id, Checkin.fecha >= hace7)
+        )).scalar_one()
+
+        dias_inactivo = (hoy - ultima_fecha).days if ultima_fecha else None
+
+        filas.append({
+            "club": club,
+            "n_jugadores": n_jugadores,
+            "n_cats": n_cats,
+            "checkins_hoy": checkins_hoy,
+            "checkouts_hoy": checkouts_hoy,
+            "ultima_fecha": ultima_fecha,
+            "dias_inactivo": dias_inactivo,
+            "staff_tg": staff_tg,
+            "staff_total": staff_total,
+            "alertas_fallidas": alertas_fallidas,
+            "checkins_7d": checkins_7d,
+        })
+
+    return templates.TemplateResponse(request, "admin/clubes.html", {
+        "filas": filas,
+        "hoy": hoy,
+    })
 
 
 # ---------- Vista del día ----------

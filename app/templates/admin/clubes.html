@@ -1,18 +1,186 @@
 {% extends "admin/base.html" %}
-{% block title %}Clubes{% endblock %}
+{% block title %}Panel de operaciones{% endblock %}
 {% block content %}
-<h1>Clubes</h1>
-<div class="card">
-  <table>
-    <tr><th>Club</th><th>Timezone</th><th>Estado</th><th></th></tr>
-    {% for c in clubes %}
-    <tr>
-      <td><strong>{{ c.nombre }}</strong></td>
-      <td>{{ c.timezone }}</td>
-      <td><span class="pill {{ 'ok' if c.activo else 'off' }}">{{ 'Activo' if c.activo else 'Inactivo' }}</span></td>
-      <td><a class="btn small" href="/admin/{{ c.slug }}">Administrar</a></td>
-    </tr>
-    {% endfor %}
-  </table>
+
+<h1>Panel de operaciones</h1>
+<p class="muted">{{ hoy.strftime('%A %d de %B de %Y').capitalize() }}</p>
+
+<style>
+  .ops-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .ops-card {
+    background: #fff;
+    border: 1px solid #dde3ed;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .ops-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #eef1f5;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ops-club-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+  .ops-club-meta {
+    font-size: 0.78rem;
+    color: #607080;
+    margin-top: 2px;
+  }
+  .ops-header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .ops-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0;
+  }
+  .ops-kpi {
+    padding: 14px 18px;
+    border-right: 1px solid #eef1f5;
+    border-bottom: 1px solid #eef1f5;
+  }
+  .ops-kpi:last-child { border-right: none; }
+  .ops-kpi-num {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .ops-kpi-num.verde  { color: #2e7d32; }
+  .ops-kpi-num.rojo   { color: #c62828; }
+  .ops-kpi-num.muted  { color: #94a3b8; }
+  .ops-kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #607080;
+    margin-top: 4px;
+  }
+  .ops-footer {
+    padding: 10px 20px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #607080;
+    border-top: 1px solid #eef1f5;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .inactivo-warn { color: #c62828; font-weight: 600; }
+  .tg-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: #607080;
+  }
+  .tg-dots {
+    display: flex;
+    gap: 3px;
+  }
+  .tg-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #e0e6ec;
+  }
+  .tg-dot.linked { background: #2e7d32; }
+  .btn.small { font-size: 0.78rem; padding: 4px 12px; }
+</style>
+
+<div class="ops-grid">
+  {% for f in filas %}
+  {% set club = f.club %}
+  <div class="ops-card">
+
+    <div class="ops-header">
+      <div>
+        <div class="ops-club-name">{{ club.nombre }}</div>
+        <div class="ops-club-meta">{{ f.n_cats }} categoría{{ 's' if f.n_cats != 1 }} · {{ f.n_jugadores }} jugadores</div>
+      </div>
+      <div class="ops-header-right">
+        {% if not club.activo %}
+          <span class="pill off">Inactivo</span>
+        {% elif f.dias_inactivo is not none and f.dias_inactivo > 7 %}
+          <span class="pill bad">Sin actividad {{ f.dias_inactivo }}d</span>
+        {% elif f.checkins_7d > 0 %}
+          <span class="pill ok">Activo</span>
+        {% else %}
+          <span class="pill warn">Sin datos esta semana</span>
+        {% endif %}
+        <a class="btn small" href="/admin/{{ club.slug }}">Ver hoy →</a>
+      </div>
+    </div>
+
+    <div class="ops-body">
+      <div class="ops-kpi">
+        <div class="ops-kpi-num {{ 'verde' if f.checkins_hoy > 0 else 'muted' }}">{{ f.checkins_hoy }}</div>
+        <div class="ops-kpi-label">Check-ins hoy</div>
+      </div>
+      <div class="ops-kpi">
+        <div class="ops-kpi-num {{ 'verde' if f.checkouts_hoy > 0 else 'muted' }}">{{ f.checkouts_hoy }}</div>
+        <div class="ops-kpi-label">Check-outs hoy</div>
+      </div>
+      <div class="ops-kpi">
+        <div class="ops-kpi-num">{{ f.checkins_7d }}</div>
+        <div class="ops-kpi-label">Check-ins 7 días</div>
+      </div>
+      <div class="ops-kpi">
+        <div class="ops-kpi-num {{ 'rojo' if f.alertas_fallidas > 0 else 'muted' }}">{{ f.alertas_fallidas }}</div>
+        <div class="ops-kpi-label">Alertas fallidas 7d</div>
+      </div>
+      <div class="ops-kpi">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="ops-kpi-num">{{ f.staff_tg }}/{{ f.staff_total }}</div>
+        </div>
+        <div class="ops-kpi-label">Staff Telegram</div>
+        <div class="tg-dots" style="margin-top:6px">
+          {% for i in range(f.staff_total) %}
+            <div class="tg-dot {{ 'linked' if i < f.staff_tg }}"></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="ops-footer">
+      <span>
+        Última actividad:
+        {% if f.ultima_fecha %}
+          {% if f.dias_inactivo == 0 %}
+            <strong>hoy</strong>
+          {% elif f.dias_inactivo == 1 %}
+            <strong>ayer</strong>
+          {% elif f.dias_inactivo <= 7 %}
+            hace {{ f.dias_inactivo }} días
+          {% else %}
+            <span class="inactivo-warn">hace {{ f.dias_inactivo }} días ({{ f.ultima_fecha.strftime('%d/%m') }})</span>
+          {% endif %}
+        {% else %}
+          <span class="muted">sin registros</span>
+        {% endif %}
+      </span>
+      <span>
+        <a href="/admin/{{ club.slug }}/jugadores">Jugadores</a> ·
+        <a href="/admin/{{ club.slug }}/staff">Staff</a> ·
+        <a href="/admin/{{ club.slug }}/alertas">Alertas</a>
+      </span>
+    </div>
+
+  </div>
+  {% endfor %}
 </div>
+
 {% endblock %}
