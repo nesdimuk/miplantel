@@ -75,6 +75,11 @@
     .btn-report .ico{font-size:1.1rem}
     .btn-report .lbl{flex:1}
     .btn-report .arr{color:var(--muted);font-size:.8rem}
+
+    .qr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+    .qr-card img{width:180px;height:180px;border-radius:8px}
+    .qr-label{font-size:.78rem;color:var(--muted);text-align:center;line-height:1.4}
+    .qr-url{font-size:.7rem;color:var(--accent);word-break:break-all;text-align:center}
   </style>
 </head>
 <body>
@@ -93,6 +98,12 @@
       <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
       {% endfor %}
     </select>
+  </div>
+
+  <div class="qr-card" id="qr-box" style="display:none">
+    <img id="qr-img" src="" alt="QR Check-in">
+    <div class="qr-label">Muéstrale este QR a tus jugadores para que hagan el check-in</div>
+    <div class="qr-url" id="qr-url"></div>
   </div>
 
   <div class="reports-section" id="reports" style="display:none">
@@ -175,6 +186,13 @@ function render() {
   document.getElementById("link-pre").href  = `${BASE_URL}/r/${catId}/${iso}`;
   document.getElementById("link-post").href = `${BASE_URL}/r/${catId}/${iso}/post`;
   document.getElementById("link-dia").href  = `${BASE_URL}/r/${catId}/${iso}/dia`;
+
+  // QR code
+  const qrBox = document.getElementById("qr-box");
+  document.getElementById("qr-img").src =
+    `https://chart.googleapis.com/chart?chs=180x180&cht=qr&choe=UTF-8&chl=${encodeURIComponent(url)}`;
+  document.getElementById("qr-url").textContent = url;
+  qrBox.style.display = "flex";
 
   reps.style.display = "block";
   cards.classList.add("visible");
