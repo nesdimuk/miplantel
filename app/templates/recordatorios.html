@@ -61,6 +61,20 @@
     }
     .btn-copy:hover{opacity:.87}
     .btn-copy.ok{background:var(--ok)}
+
+    .reports-section{margin-top:.25rem}
+    .reports-label{font-size:.75rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.5rem}
+    .report-links{display:flex;flex-direction:column;gap:.5rem}
+    .btn-report{
+      display:flex;align-items:center;gap:.6rem;
+      padding:.7rem 1rem;border-radius:10px;border:1px solid var(--border);
+      background:var(--surface);color:var(--text);text-decoration:none;
+      font-size:.84rem;font-weight:500;transition:border-color .15s;
+    }
+    .btn-report:hover{border-color:var(--accent)}
+    .btn-report .ico{font-size:1.1rem}
+    .btn-report .lbl{flex:1}
+    .btn-report .arr{color:var(--muted);font-size:.8rem}
   </style>
 </head>
 <body>
@@ -79,6 +93,21 @@
       <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
       {% endfor %}
     </select>
+  </div>
+
+  <div class="reports-section" id="reports" style="display:none">
+    <div class="reports-label">Informes de hoy</div>
+    <div class="report-links">
+      <a class="btn-report" id="link-pre" href="#" target="_blank">
+        <span class="ico">📋</span><span class="lbl">Informe Pre-Entrenamiento</span><span class="arr">›</span>
+      </a>
+      <a class="btn-report" id="link-post" href="#" target="_blank">
+        <span class="ico">🏃</span><span class="lbl">Informe Post-Entrenamiento</span><span class="arr">›</span>
+      </a>
+      <a class="btn-report" id="link-dia" href="#" target="_blank">
+        <span class="ico">📊</span><span class="lbl">Cierre del día</span><span class="arr">›</span>
+      </a>
+    </div>
   </div>
 
   <div class="cards" id="cards">
@@ -115,23 +144,39 @@
 <script>
 const BASE_URL = "{{ base_url }}";
 const SLUG    = "{{ club.slug }}";
+const CATS    = { {% for c in categorias %}"{{ c.nombre }}": {{ c.id }}{% if not loop.last %}, {% endif %}{% endfor %} };
 
-function today() {
+function todayLabel() {
   const d = new Date();
   const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
   return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
 }
+function todayIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
 
 function render() {
-  const cat = document.getElementById("catSel").value;
+  const cat   = document.getElementById("catSel").value;
   const cards = document.getElementById("cards");
-  if (!cat) { cards.classList.remove("visible"); return; }
+  const reps  = document.getElementById("reports");
+  if (!cat) { cards.classList.remove("visible"); reps.style.display="none"; return; }
+
+  const catId = CATS[cat];
   const url   = `${BASE_URL}/f/${SLUG}/${encodeURIComponent(cat)}`;
-  const fecha = today();
+  const fecha = todayLabel();
+  const iso   = todayIso();
+
   document.getElementById("m1").textContent =
     `⚽ ${cat} — ${fecha}\n\nAntes de llegar, completa el check-in de bienestar:\n📲 ${url}\n\nSi hoy no vas a asistir, también llénalo y marca "No asistiré".`;
   document.getElementById("m2").textContent =
     `⚽ ${cat} — ${fecha}\n\nRecuerda completar el check-out del entrenamiento de hoy:\n📲 ${url}`;
+
+  document.getElementById("link-pre").href  = `${BASE_URL}/r/${catId}/${iso}`;
+  document.getElementById("link-post").href = `${BASE_URL}/r/${catId}/${iso}/post`;
+  document.getElementById("link-dia").href  = `${BASE_URL}/r/${catId}/${iso}/dia`;
+
+  reps.style.display = "block";
   cards.classList.add("visible");
 }
 

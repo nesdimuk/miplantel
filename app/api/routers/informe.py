@@ -451,9 +451,10 @@ async def recordatorios(slug: str, request: Request, db: AsyncSession = Depends(
     categorias = cats_result.scalars().all()
 
     base = settings.base_url.rstrip("/") if settings.base_url else str(request.base_url).rstrip("/")
+    cats_data = [{"nombre": c.nombre, "id": c.id} for c in categorias]
     return templates.TemplateResponse("recordatorios.html", {
         "request": request,
         "club": club,
-        "categorias": categorias,
+        "categorias": cats_data,
         "base_url": base,
     })
