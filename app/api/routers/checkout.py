@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.engine import get_db
 from app.db.models import Checkout, Checkin, Jugador, Categoria, SesionDia
 from app.api.schemas import CheckoutCreate, CheckoutResponse
-from app.services.notificaciones_post import _enviar_resumen_post_job, _enviar_dashboard_dia_job
+from app.services.notificaciones_post import _enviar_resumen_post_job
 from app.scheduler.jobs import scheduler
 
 router = APIRouter()
@@ -138,8 +138,8 @@ async def _schedule_post_training(db: AsyncSession, categoria_id: int, fecha) ->
     )
 
     fecha_iso = fecha.isoformat() if not isinstance(fecha, str) else fecha
-    run_resumen = now + timedelta(hours=1)
-    run_dashboard = now + timedelta(hours=2)
+    # 3 checkouts → post-entreno en 15 min (adelanta el fallback del semáforo)
+    run_resumen = now + timedelta(minutes=15)
 
     scheduler.add_job(
         _enviar_resumen_post_job,
@@ -150,16 +150,7 @@ async def _schedule_post_training(db: AsyncSession, categoria_id: int, fecha) ->
         replace_existing=True,
         misfire_grace_time=3600,
     )
-    scheduler.add_job(
-        _enviar_dashboard_dia_job,
-        trigger="date",
-        run_date=run_dashboard,
-        args=[categoria_id, fecha_iso],
-        id=f"dashboard_dia_{categoria_id}_{fecha_iso}",
-        replace_existing=True,
-        misfire_grace_time=3600,
-    )
     logger.info(
-        "Post-training jobs scheduled for categoria_id=%s fecha=%s (+1h resumen, +2h dashboard)",
+        "Post-training resumen scheduled for categoria_id=%s fecha=%s (+15min)",
         categoria_id, fecha_iso,
     )

@@ -126,10 +126,11 @@
   </details>
   {% endif %}
 
-  {# ── MENSAJE PARA EL GRUPO ── #}
+  {# ── MENSAJE PRE-ENTRENAMIENTO ── #}
   <div class="wa-preview-box">
-    <div class="wa-preview-label">📲 Mensaje para el grupo</div>
-    <textarea id="wa-texto" class="wa-textarea" rows="7" spellcheck="false"></textarea>
+    <div class="wa-preview-label">📲 Mensaje Pre-Entrenamiento</div>
+    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.5rem">Se actualiza a medida que llegan check-ins. Toca 🔄 para refrescar.</div>
+    <textarea id="wa-texto" class="wa-textarea" rows="8" spellcheck="false"></textarea>
     <div class="btn-copy-group" style="margin-top:.5rem">
       <button class="btn-wa btn-wa-sec" onclick="window.location.reload()">🔄 Actualizar</button>
       <button class="btn-wa" id="btn-copiar" onclick="copiarMensaje()">📋 Copiar</button>
@@ -168,10 +169,29 @@ const checkinUrl = "{{ checkin_url }}";
 const catNombre  = "{{ categoria.nombre }}";
 const fechaStr   = "{{ fecha.strftime('%d/%m') }}";
 
+const verde    = {{ conteo.verde }};
+const amarillo = {{ conteo.amarillo }};
+const rojo     = {{ conteo.rojo }};
+
 function construirMensaje() {
-  let partes = [`⚽ ${catNombre} — ${fechaStr}\n`];
-  if (conCheckin.length) partes.push(`✅ Ya hicieron check-in (${conCheckin.length}):\n${conCheckin.join('\n')}`);
-  partes.push(`\n📲 Súmate aquí 👉 ${checkinUrl}`);
+  let partes = [`⚽ ${catNombre} — ${fechaStr}`];
+
+  // Semáforo si hay datos
+  if (conCheckin.length > 0) {
+    let semParts = [];
+    if (verde    > 0) semParts.push(`🟢 ${verde}`);
+    if (amarillo > 0) semParts.push(`🟡 ${amarillo}`);
+    if (rojo     > 0) semParts.push(`🔴 ${rojo}`);
+    if (semParts.length) partes.push(`Semáforo: ${semParts.join('  ')}`);
+  }
+
+  if (sinCheckin.length) {
+    partes.push(`⏳ Faltan por hacer check-in (${sinCheckin.length}):\n${sinCheckin.join('\n')}`);
+  } else if (conCheckin.length > 0) {
+    partes.push(`✅ Todos completaron el check-in (${conCheckin.length})`);
+  }
+
+  partes.push(`📲 Formulario 👉 ${checkinUrl}`);
   return partes.join('\n\n');
 }
 

@@ -139,6 +139,44 @@
   </details>
   {% endif %}
 
+  {# ── MENSAJE RECORDATORIO FINAL ── #}
+  {% set sin_co = fichas | selectattr("rpe", "none") | list %}
+  <div class="wa-preview-box">
+    <div class="wa-preview-label">📲 Mensaje Recordatorio Final</div>
+    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.5rem">Para los jugadores que aún no completaron el check-out.</div>
+    <textarea id="wa-rec" class="wa-textarea" rows="7" spellcheck="false"></textarea>
+    <div class="btn-copy-group" style="margin-top:.5rem">
+      <button class="btn-wa" onclick="copiarRecordatorio()">📋 Copiar</button>
+    </div>
+  </div>
+
 </div>
+
+<script>
+const sinCheckout = [{% for f in fichas %}{% if f.rpe is none %}"{{ f.nombre }}"{% if not loop.last %},{% endif %}{% endif %}{% endfor %}];
+const catNombreDia = "{{ categoria.nombre }}";
+const fechaDia = "{{ fecha.strftime('%d/%m') }}";
+
+function buildRec() {
+  if (!sinCheckout.length) {
+    return `⚽ ${catNombreDia} — ${fechaDia}\n\n✅ ¡Todos completaron su check-out hoy! Gracias.`;
+  }
+  return `⚽ ${catNombreDia} — ${fechaDia}\n\n⏳ Falta el check-out de:\n${sinCheckout.join('\n')}\n\n📲 Complétalo aquí 👉 {{ checkin_url if checkin_url is defined else '' }}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('wa-rec');
+  if (ta) ta.value = buildRec();
+});
+
+function copiarRecordatorio() {
+  const ta = document.getElementById('wa-rec');
+  const btn = event.target;
+  navigator.clipboard?.writeText(ta.value).then(() => {
+    btn.textContent = '✅ Copiado';
+    setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+  }).catch(() => { ta.select(); document.execCommand('copy'); });
+}
+</script>
 </body>
 </html>

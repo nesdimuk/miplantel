@@ -1,15 +1,15 @@
 import logging
 from collections import Counter
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.db.models import Categoria, Checkin, Jugador, SesionDia
-from app.services.alertas import enviar_a_staff
+from app.db.models import Categoria, Checkin, Club, Jugador, SesionDia
 
 logger = logging.getLogger("services.semaforo")
 
@@ -136,17 +136,48 @@ async def enviar_semaforo(
         f"{settings.base_url.rstrip('/')}/r/{categoria.id}/{fecha.isoformat()}"
         if settings.base_url else f"/r/{categoria.id}/{fecha.isoformat()}"
     )
-    await enviar_a_staff(
-        db,
-        club_id=categoria.club_id,
-        tipo="semaforo",
-        categoria_id=categoria.id,
-        jugador_id=None,
-        template="semaforo_checkin",
-        variables=[categoria.nombre, link],
-    )
-    logger.info("Semáforo enviado: %s %s — %d rojos", categoria.nombre, fecha, len(stats["rojos"]))
+    # Semáforo no envía mensaje Telegram — el profe lo ve en la página
+    # Programar jobs de post-entreno como fallback si no llegan 3 checkouts
+    _schedule_fallback_jobs(categoria, fecha)
+    logger.info("Semáforo calculado: %s %s — %d rojos (sin mensaje TG)", categoria.nombre, fecha, len(stats["rojos"]))
     return True
+
+
+def _schedule_fallback_jobs(categoria: Categoria, fecha: date) -> None:
+    """Schedule post-training messages at hora_inicio+2h and +4h as fallback."""
+    try:
+        from app.scheduler.jobs import scheduler
+        from app.services.notificaciones_post import _enviar_resumen_post_job, _enviar_dashboard_dia_job
+
+        tz = ZoneInfo("America/Santiago")
+        h, m = map(int, categoria.hora_inicio.split(":"))
+        inicio = datetime(fecha.year, fecha.month, fecha.day, h, m, tzinfo=tz)
+        fecha_iso = fecha.isoformat()
+
+        scheduler.add_job(
+            _enviar_resumen_post_job,
+            trigger="date",
+            run_date=inicio + timedelta(hours=2),
+            args=[categoria.id, fecha_iso],
+            id=f"resumen_post_{categoria.id}_{fecha_iso}",
+            replace_existing=False,
+            misfire_grace_time=3600,
+        )
+        scheduler.add_job(
+            _enviar_dashboard_dia_job,
+            trigger="date",
+            run_date=inicio + timedelta(hours=4),
+            args=[categoria.id, fecha_iso],
+            id=f"dashboard_dia_{categoria.id}_{fecha_iso}",
+            replace_existing=False,
+            misfire_grace_time=3600,
+        )
+        logger.info(
+            "Fallback jobs programados: %s %s (+2h resumen, +4h dashboard desde hora_inicio)",
+            categoria.nombre, fecha,
+        )
+    except Exception:
+        logger.exception("Error programando fallback jobs para %s %s", categoria.nombre, fecha)
 
 
 async def _claim_semaforo(db: AsyncSession, categoria_id: int, fecha: date) -> bool:

@@ -76,12 +76,13 @@
     </div>
   </div>
 
-  {# ── MENSAJE WHATSAPP EDITABLE ── #}
+  {# ── MENSAJE POST-ENTRENAMIENTO ── #}
   <div class="wa-preview-box">
-    <div class="wa-preview-label">📲 Mensaje para el grupo</div>
+    <div class="wa-preview-label">📲 Mensaje Post-Entrenamiento</div>
+    <div style="font-size:.73rem;color:var(--muted);margin-bottom:.5rem">Toca 🔄 para actualizar quién ya completó el check-out.</div>
     <textarea id="wa-texto" class="wa-textarea" rows="8" spellcheck="false"></textarea>
     <div class="btn-copy-group" style="margin-top:.5rem">
-      <button class="btn-wa btn-wa-sec" onclick="abrirWhatsApp()">📤 Abrir WhatsApp</button>
+      <button class="btn-wa btn-wa-sec" onclick="actualizarLista()">🔄 Actualizar</button>
       <button class="btn-wa" onclick="copiarMensaje()">📋 Copiar</button>
     </div>
   </div>

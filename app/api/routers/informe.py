@@ -410,6 +410,10 @@ async def informe_dia(
         })
     fichas.sort(key=lambda f: (_ORDEN_DIA[f["estado"]], f["bienestar"] or 99))
 
+    from app.config import settings
+    base = settings.base_url.rstrip("/") if settings.base_url else ""
+    checkin_url_dia = f"{base}/f/{club.slug}/{categoria.nombre}"
+
     return templates.TemplateResponse("informe_dia.html", {
         "request": request,
         "categoria": categoria,
@@ -427,4 +431,5 @@ async def informe_dia(
         "molestias": molestias_pre + molestias_post,
         "inasistentes": [{"nombre": f"{j.nombre} {j.apellido}", "motivo": c.motivo_inasistencia or "—"} for c, j in inasistentes],
         "fichas": fichas,
+        "checkin_url": checkin_url_dia,
     })
