@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.engine import get_db
 from app.db.models import Categoria, Checkin, Checkout, Club, Jugador
 
@@ -432,4 +433,27 @@ async def informe_dia(
         "inasistentes": [{"nombre": f"{j.nombre} {j.apellido}", "motivo": c.motivo_inasistencia or "—"} for c, j in inasistentes],
         "fichas": fichas,
         "checkin_url": checkin_url_dia,
+    })
+
+
+@router.get("/recordatorios/{slug}", response_class=HTMLResponse)
+async def recordatorios(slug: str, request: Request, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Club).where(Club.slug == slug, Club.activo == True))
+    club = result.scalar_one_or_none()
+    if not club:
+        raise HTTPException(404, "Club no encontrado")
+
+    cats_result = await db.execute(
+        select(Categoria)
+        .where(Categoria.club_id == club.id, Categoria.activo == True)
+        .order_by(Categoria.nombre)
+    )
+    categorias = cats_result.scalars().all()
+
+    base = settings.base_url.rstrip("/") if settings.base_url else str(request.base_url).rstrip("/")
+    return templates.TemplateResponse("recordatorios.html", {
+        "request": request,
+        "club": club,
+        "categorias": categorias,
+        "base_url": base,
     })
