@@ -115,7 +115,7 @@ async def telegram_webhook(
     else:
         # Check if this chat_id belongs to a linked staff member
         result = await db.execute(select(Staff).where(Staff.telegram_chat_id == chat_id, Staff.activo == True))
-        staff = result.scalar_one_or_none()
+        staff = result.scalars().first()
         if staff:
             await _handle_coach_message(db, chat_id, text, staff)
         else:
