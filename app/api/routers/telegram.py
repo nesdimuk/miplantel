@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.db.engine import get_db
 from app.db.models import Staff
+from app.services.bot_chat import responder_coach
 
 router = APIRouter(prefix="/api/telegram")
 logger = logging.getLogger("api.telegram")
@@ -112,13 +113,29 @@ async def telegram_webhook(
         payload = parts[1] if len(parts) > 1 else ""
         await _handle_start(db, chat_id, payload)
     else:
-        await _tg_reply(
-            chat_id,
-            "👋 Hola, soy el bot de *Mi Plantel*.\n"
-            "Para vincular tu cuenta, usa el enlace que te envió el administrador.",
-        )
+        # Check if this chat_id belongs to a linked staff member
+        result = await db.execute(select(Staff).where(Staff.telegram_chat_id == chat_id, Staff.activo == True))
+        staff = result.scalar_one_or_none()
+        if staff:
+            await _handle_coach_message(db, chat_id, text, staff)
+        else:
+            await _tg_reply(
+                chat_id,
+                "👋 Hola, soy el bot de *Mi Plantel*.\n"
+                "Para vincular tu cuenta, usa el enlace que te envió el administrador.",
+            )
 
     return JSONResponse({"ok": True})
+
+
+async def _handle_coach_message(db: AsyncSession, chat_id: int, text: str, staff: Staff) -> None:
+    """Handle a free-text message from a linked coach: query OpenAI and reply."""
+    try:
+        respuesta = await responder_coach(db, staff, text)
+    except Exception:
+        logger.exception("Error al consultar OpenAI (chat_id=%s)", chat_id)
+        respuesta = "❌ Error al procesar tu consulta. Intenta de nuevo en un momento."
+    await _tg_reply(chat_id, respuesta)
 
 
 async def _handle_start(db: AsyncSession, chat_id: int, payload: str) -> None:
