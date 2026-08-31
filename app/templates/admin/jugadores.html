@@ -36,6 +36,17 @@
   </form>
 </div>
 
+<div style="margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem">
+  <span style="font-size:.85rem;color:#666">
+    Mostrando <strong>{{ jugadores|length }}</strong> jugadores {{ 'incluyendo inactivos' if mostrar_inactivos else 'activos' }}
+  </span>
+  {% if mostrar_inactivos %}
+  <a href="/admin/{{ club.slug }}/jugadores" class="btn small gray">Ocultar inactivos</a>
+  {% else %}
+  <a href="/admin/{{ club.slug }}/jugadores?mostrar_inactivos=true" class="btn small gray">Ver inactivos también</a>
+  {% endif %}
+</div>
+
 <div class="card">
   <table>
     <tr><th>Jugador</th><th>Categoría</th><th>Estado</th><th></th></tr>

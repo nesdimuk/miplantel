@@ -267,17 +267,26 @@ async def reenviar_resumen(club_slug: str, categoria_id: int, db: AsyncSession =
 # ---------- Jugadores ----------
 
 @router.get("/{club_slug}/jugadores")
-async def jugadores_page(request: Request, club_slug: str, db: AsyncSession = Depends(get_db)):
+async def jugadores_page(
+    request: Request,
+    club_slug: str,
+    db: AsyncSession = Depends(get_db),
+    mostrar_inactivos: bool = False,
+):
     club = await _get_club(db, club_slug)
     categorias = await _categorias_de(db, club.id)
-    jugadores = (await db.execute(
+    q = (
         select(Jugador, Categoria.nombre.label("categoria_nombre"))
         .join(Categoria, Jugador.categoria_id == Categoria.id)
         .where(Categoria.club_id == club.id)
-        .order_by(Categoria.nombre, Jugador.apellido)
-    )).all()
+    )
+    if not mostrar_inactivos:
+        q = q.where(Jugador.activo == True)  # noqa: E712
+    q = q.order_by(Categoria.nombre, Jugador.apellido)
+    jugadores = (await db.execute(q)).all()
     return templates.TemplateResponse(request, "admin/jugadores.html", {
         "club": club, "categorias": categorias, "jugadores": jugadores,
+        "mostrar_inactivos": mostrar_inactivos,
     })
 
 
