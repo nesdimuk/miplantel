@@ -190,7 +190,7 @@ function render() {
   // QR code
   const qrBox = document.getElementById("qr-box");
   document.getElementById("qr-img").src =
-    `https://chart.googleapis.com/chart?chs=180x180&cht=qr&choe=UTF-8&chl=${encodeURIComponent(url)}`;
+    `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}&margin=8`;
   document.getElementById("qr-url").textContent = url;
   qrBox.style.display = "flex";
 
